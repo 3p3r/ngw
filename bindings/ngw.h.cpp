@@ -32,6 +32,34 @@ NGWAPI(void) ngw_discoverer_free(Discoverer* discoverer) {
     delete discoverer;
 }
 
+NGWAPI(int) ngw_discoverer_get_width(Discoverer* discoverer) {
+    return discoverer->getWidth();
+}
+
+NGWAPI(int) ngw_discoverer_get_height(Discoverer* discoverer) {
+    return discoverer->getHeight();
+}
+
+NGWAPI(float) ngw_discoverer_get_framerate(Discoverer* discoverer) {
+    return discoverer->getFramerate();
+}
+
+NGWAPI(NgwBool) ngw_discoverer_get_has_video(Discoverer* discoverer) {
+    return discoverer->getHasVideo() != NGW_BOOL_FALSE;
+}
+
+NGWAPI(NgwBool) ngw_discoverer_get_has_audio(Discoverer* discoverer) {
+    return discoverer->getHasAudio() != NGW_BOOL_FALSE;
+}
+
+NGWAPI(NgwBool) ngw_discoverer_get_seekable(Discoverer* discoverer) {
+    return discoverer->getSeekable() != NGW_BOOL_FALSE;
+}
+
+NGWAPI(double) ngw_discoverer_get_duration(Discoverer* discoverer) {
+    return discoverer->getDuration();
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
