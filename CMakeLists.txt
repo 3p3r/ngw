@@ -34,10 +34,9 @@ TARGET_ADD_GSTREAMER_MODULES( ngw.static
 	gstreamer-pbutils-1.0 )
 
 # C bindings shared library target
-ADD_LIBRARY( ngw SHARED ${NGW_BINDINGS}/ngw.h )
+ADD_LIBRARY( ngw SHARED ${NGW_BINDINGS}/ngw.h ${NGW_BINDINGS}/ngw.h.cpp )
 TARGET_ADD_GSTREAMER_MODULES( ngw
 	gstreamer-1.0
 	gstreamer-app-1.0
 	gstreamer-pbutils-1.0 )
 TARGET_LINK_LIBRARIES( ngw ngw.static )
-TARGET_COMPILE_DEFINITIONS( ngw PUBLIC -DNGW_BUILD_BINDINGS )
