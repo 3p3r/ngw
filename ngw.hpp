@@ -14,25 +14,23 @@ public:
 	static void		addBinaryPath(const gchar* path);
 
 public:
-	void			open(const gchar *path, gint width, gint height, const gchar* fmt);
-	void			open(const gchar *path, gint width, gint height);
-	void			open(const gchar *path, const gchar* fmt);
-	void			open(const gchar *path);
+	bool			open(const gchar *path, gint width, gint height, const gchar* fmt);
+	bool			open(const gchar *path, gint width, gint height);
+	bool			open(const gchar *path, const gchar* fmt);
+	bool			open(const gchar *path);
 	void			close();
+	void			setState(GstState state);
+	GstState		getState() const;
 	void			stop();
-	void			replay();
 	void			play();
+	void			replay();
 	void			pause();
 	void			update();
 	gdouble			getDuration() const;
 	void			setLoop(bool on);
 	bool			getLoop() const;
-	void			setState(GstState state);
-	GstState		getState() const;
 	void			setTime(gdouble time);
 	gdouble			getTime() const;
-	void			setFrame(guint64 time);
-	gdouble			getFrameCount() const;
 	void			setVolume(gdouble vol);
 	gdouble			getVolume() const;
 	void			setMute(bool on);
