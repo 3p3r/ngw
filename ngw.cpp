@@ -6,7 +6,7 @@
 
 namespace
 {
-// RAII Utility to release a GST / GLIB pointer when scope ends
+
 template<typename T>
 class BindToScope {
 public:
@@ -37,115 +37,14 @@ namespace ngw
 class Internal
 {
 public:
-	// Utility to convert local file path to URI if it exists
-	// NOTE: Caller must g_free(...) the returned string.
-	static gchar* processPath(const gchar* path)
-	{
-		gchar* processed_path = nullptr;
-
-		if (g_file_test(path, G_FILE_TEST_EXISTS) != FALSE)
-		{
-			// This will be NULL if path is already a valid URI
-			gchar* uri = g_filename_to_uri(path, nullptr, nullptr);
-
-			if (uri) {
-				processed_path = uri;
-			}
-			else {
-				processed_path = g_strdup(path);
-			}
-		}
-
-		return processed_path;
-	}
-
-	static void reset(ngw::Player& player) {
-		player.mState = GST_STATE_NULL;
-		player.mPath = nullptr;
-		player.mPipeline = nullptr;
-		player.mGstBus = nullptr;
-		player.mCurrentBuffer = nullptr;
-		player.mCurrentSample = nullptr;
-		player.mWidth = 0;
-		player.mHeight = 0;
-		player.mDuration = 0;
-		player.mTime = 0.;
-		player.mVolume = 1.;
-		player.mPendingSeek = 0.;
-		player.mSeekingLock = false;
-		g_atomic_int_set(&player.mBufferDirty, FALSE);
-	}
-
-	static void reset(Discoverer& discoverer) {
-		discoverer.mWidth = 0;
-		discoverer.mHeight = 0;
-		discoverer.mFramerate = 0;
-		discoverer.mHasAudio = false;
-		discoverer.mHasVideo = false;
-		discoverer.mSeekable = false;
-		discoverer.mDuration = 0;
-	}
-
-	static bool gstreamerInitialized()
-	{
-		GError *init_error = nullptr;
-		BIND_TO_SCOPE(init_error);
-
-		if (gst_is_initialized() == FALSE &&
-			gst_init_check(nullptr, nullptr, &init_error) == FALSE)
-		{
-			g_debug("GStreamer failed to initialize: %s.", init_error->message);
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-
-	static GstFlowReturn onPreroll(GstElement* appsink, ngw::Player* player)
-	{
-		processSample(player, gst_app_sink_pull_preroll(GST_APP_SINK(appsink)));
-		return GST_FLOW_OK;
-	}
-
-	static GstFlowReturn onSampled(GstElement* appsink, ngw::Player* player)
-	{
-		processSample(player, gst_app_sink_pull_sample(GST_APP_SINK(appsink)));
-		return GST_FLOW_OK;
-	}
-
-	static void processSample(ngw::Player *const player, GstSample* const sample)
-	{
-		// Check if UI thread has consumed the last frame
-		if (g_atomic_int_get(&player->mBufferDirty) != FALSE)
-		{
-			// Simply, skip this sample. UI is not consuming fast enough.
-			gst_sample_unref(sample);
-			return;
-		}
-
-		// Acquire and hold onto the new frame (until UI consumes it)
-		player->mCurrentSample = sample;
-		player->mCurrentBuffer = gst_sample_get_buffer(sample);
-		gst_buffer_map(player->mCurrentBuffer, &player->mCurrentMapInfo, GST_MAP_READ);
-
-		// Signal UI thread it can consume
-		g_atomic_int_set(&player->mBufferDirty, TRUE);
-	}
-
-	static void processDuration(Player& player)
-	{
-		g_return_if_fail(player.mPipeline != nullptr);
-
-		// Nanoseconds
-		gint64 duration_ns = 0;
-		if (gst_element_query_duration(GST_ELEMENT(player.mPipeline), GST_FORMAT_TIME, &duration_ns) != FALSE)
-		{
-			// Seconds
-			player.mDuration = duration_ns / gdouble(GST_SECOND);
-		}
-	}
+	static gchar*			processPath(const gchar* path);
+	static void				reset(ngw::Player& player);
+	static void				reset(Discoverer& discoverer);
+	static bool				gstreamerInitialized();
+	static GstFlowReturn	onPreroll(GstElement* appsink, ngw::Player* player);
+	static GstFlowReturn	onSampled(GstElement* appsink, ngw::Player* player);
+	static void				processSample(ngw::Player *const player, GstSample* const sample);
+	static void				processDuration(Player& player);
 };
 
 Player::Player()
@@ -654,6 +553,113 @@ bool Discoverer::getSeekable() const
 gdouble Discoverer::getDuration() const
 {
 	return mDuration;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Internal implementation
+//////////////////////////////////////////////////////////////////////////
+
+gchar* Internal::processPath(const gchar* path)
+{
+	gchar* processed_path = nullptr;
+
+	if (g_file_test(path, G_FILE_TEST_EXISTS) != FALSE) {
+		// This will be NULL if path is already a valid URI
+		gchar* uri = g_filename_to_uri(path, nullptr, nullptr);
+
+		if (uri) {
+			processed_path = uri;
+		} else {
+			processed_path = g_strdup(path);
+		}
+	}
+
+	return processed_path;
+}
+
+void Internal::reset(ngw::Player& player)
+{
+	player.mState			= GST_STATE_NULL;
+	player.mPath			= nullptr;
+	player.mPipeline		= nullptr;
+	player.mGstBus			= nullptr;
+	player.mCurrentBuffer	= nullptr;
+	player.mCurrentSample	= nullptr;
+	player.mWidth			= 0;
+	player.mHeight			= 0;
+	player.mDuration		= 0;
+	player.mTime			= 0.;
+	player.mVolume			= 1.;
+	player.mPendingSeek		= 0.;
+	player.mSeekingLock		= false;
+	g_atomic_int_set(&player.mBufferDirty, FALSE);
+}
+
+void Internal::reset(Discoverer& discoverer)
+{
+	discoverer.mWidth		= 0;
+	discoverer.mHeight		= 0;
+	discoverer.mFramerate	= 0;
+	discoverer.mHasAudio	= false;
+	discoverer.mHasVideo	= false;
+	discoverer.mSeekable	= false;
+	discoverer.mDuration	= 0;
+}
+
+bool Internal::gstreamerInitialized()
+{
+	GError *init_error = nullptr;
+	BIND_TO_SCOPE(init_error);
+
+	if (gst_is_initialized() == FALSE &&
+		gst_init_check(nullptr, nullptr, &init_error) == FALSE) {
+		g_debug("GStreamer failed to initialize: %s.", init_error->message);
+		return false;
+	} else {
+		return true;
+	}
+}
+
+GstFlowReturn Internal::onPreroll(GstElement* appsink, ngw::Player* player)
+{
+	processSample(player, gst_app_sink_pull_preroll(GST_APP_SINK(appsink)));
+	return GST_FLOW_OK;
+}
+
+GstFlowReturn Internal::onSampled(GstElement* appsink, ngw::Player* player)
+{
+	processSample(player, gst_app_sink_pull_sample(GST_APP_SINK(appsink)));
+	return GST_FLOW_OK;
+}
+
+void Internal::processSample(ngw::Player *const player, GstSample* const sample)
+{
+	// Check if UI thread has consumed the last frame
+	if (g_atomic_int_get(&player->mBufferDirty) != FALSE) {
+		// Simply, skip this sample. UI is not consuming fast enough.
+		gst_sample_unref(sample);
+		return;
+	}
+
+	// Acquire and hold onto the new frame (until UI consumes it)
+	player->mCurrentSample = sample;
+	player->mCurrentBuffer = gst_sample_get_buffer(sample);
+	gst_buffer_map(player->mCurrentBuffer, &player->mCurrentMapInfo, GST_MAP_READ);
+
+	// Signal UI thread it can consume
+	g_atomic_int_set(&player->mBufferDirty, TRUE);
+}
+
+void Internal::processDuration(Player& player)
+{
+	g_return_if_fail(player.mPipeline != nullptr);
+
+	// Nanoseconds
+	gint64 duration_ns = 0;
+	if (gst_element_query_duration(GST_ELEMENT(player.mPipeline), GST_FORMAT_TIME, &duration_ns) != FALSE) {
+		// Seconds
+		player.mDuration = duration_ns / gdouble(GST_SECOND);
+	}
 }
 
 }
