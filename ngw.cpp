@@ -666,7 +666,7 @@ GstFlowReturn Internal::onPreroll(GstElement* appsink, ngw::Player* player)
 	// is passed into and requested from the pipeline.
 	if (sample != nullptr)
 	{
-		if (GstCaps *caps = gst_sample_get_caps(player->mCurrentSample))
+		if (GstCaps *caps = gst_sample_get_caps(sample))
 		{
 			if (gst_caps_is_fixed(caps) != FALSE)
 			{
