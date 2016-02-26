@@ -4,39 +4,26 @@
 #include <gst/app/gstappsink.h>
 #include <gst/pbutils/gstdiscoverer.h>
 
-namespace
+namespace ngw
 {
 
 template<typename T>
-class BindToScope {
-public:
-	BindToScope(T*& ptr) : mPtr(ptr)	{ /* no-op */ }
-	~BindToScope()						{ release(); mPtr = nullptr; }
-	void release();
-private:
-	T*& mPtr;
+struct BindToScope
+{
+	BindToScope(T*& ptr) : pointer(ptr) {}
+	~BindToScope();
+	T*& pointer;
 };
 
-template<> void BindToScope<gchar>::release()					{ g_free(mPtr); }
-template<> void BindToScope<GList>::release()					{ gst_discoverer_stream_info_list_free(mPtr); }
-template<> void BindToScope<GError>::release()					{ g_error_free(mPtr); }
-template<> void BindToScope<GstAppSink>::release()				{ g_object_unref(mPtr); }
-template<> void BindToScope<GstDiscoverer>::release()			{ g_object_unref(mPtr); }
-template<> void BindToScope<GstDiscovererInfo>::release()		{ gst_discoverer_info_unref(mPtr); }
-template<> void BindToScope<GstDiscovererStreamInfo>::release()	{ gst_discoverer_stream_info_unref(mPtr); }
-
-template< class T > struct rm_ptr { typedef T type; };
-template< class T > struct rm_ptr<T*> { typedef T type; };
-#define BIND_TO_SCOPE(var) BindToScope<rm_ptr<decltype(var)>::type> scoped_##var(var); 
-
-}
-
-namespace ngw
-{
+template< class T > struct	no_ptr		{ typedef T type; };
+template< class T > struct	no_ptr<T*>	{ typedef T type; };
+#define BIND_TO_SCOPE(var)	BindToScope<\
+	no_ptr<decltype(var)>::type> scoped_##var(var);
 
 class Internal
 {
 public:
+	static bool				isNullOrEmpty(const gchar* const str);
 	static gchar*			processPath(const gchar* path);
 	static void				reset(ngw::Player& player);
 	static void				reset(Discoverer& discoverer);
@@ -52,7 +39,6 @@ Player::Player()
 	, mMute(false)
 {
 	Internal::reset(*this);
-
 	if (!Internal::gstreamerInitialized())
 	{
 		g_debug("You will not be able to use ngw. %s",
@@ -63,14 +49,15 @@ Player::Player()
 Player::~Player()
 {
 	close();
-	// to reset all pointers
-	Internal::reset(*this);
 }
 
 void Player::addPluginPath(const gchar* path)
 {
-	if (path == nullptr)
+	if (Internal::isNullOrEmpty(path))
+	{
+		g_debug("Plug-in path supplied is empty.");
 		return;
+	}
 
 	if (!Internal::gstreamerInitialized())
 	{
@@ -86,12 +73,25 @@ void Player::addPluginPath(const gchar* path)
 
 void Player::addBinaryPath(const gchar* path)
 {
-	if (path == nullptr) return;
+	if (Internal::isNullOrEmpty(path))
+	{
+		g_debug("Binary path supplied is empty.");
+		return;
+	}
 
-	gchar* new_path_var = g_strdup_printf("%s;%s", g_getenv("PATH"), path);
-	BIND_TO_SCOPE(new_path_var);
+	gchar* path_var = nullptr;
+	BIND_TO_SCOPE(path_var);
 
-	if (g_setenv("PATH", new_path_var, TRUE) == FALSE)
+	if (Internal::isNullOrEmpty(g_getenv("PATH")))
+	{
+		path_var = g_strdup(path);
+	}
+	else
+	{
+		path_var = g_strdup_printf("%s;%s", g_getenv("PATH"), path);
+	}
+
+	if (g_setenv("PATH", path_var, TRUE) == FALSE)
 	{
 		g_debug("Unable to append %s to PATH.", path);
 	}
@@ -99,67 +99,80 @@ void Player::addBinaryPath(const gchar* path)
 
 bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 {
-	bool status = false;
+	bool success = false;
 	if (!Internal::gstreamerInitialized())
 	{
 		g_debug("You cannot open a media with ngw. %s",
 				"GStreamer could not be initialized.");
-		return status;
+		return success;
 	}
 
 	// First close any current streams.
 	close();
 
-	// Acquire the new path
-	mPath = Internal::processPath(path);
+	if (Internal::isNullOrEmpty(path))
+	{
+		g_debug("Supplied media path is empty.");
+		return success;
+	}
 
-	// Check if passed format is 0, if yes supply a default one.
-	const gchar* format = (fmt == nullptr) ? "BGRA" : fmt;
+	if (Internal::isNullOrEmpty(fmt))
+	{
+		g_debug("Supplied media format is empty.");
+		return success;
+	}
+
+	// Acquire the new path
+	gchar *uri = Internal::processPath(path);
+	BIND_TO_SCOPE(uri);
+
+	// Check if passed format is null, if yes supply a default one.
+	const gchar* format = Internal::isNullOrEmpty(fmt) ? "BGRA" : fmt;
 
 	// Create the pipeline expression
 	gchar* pipeline_cmd = g_strdup_printf(
 		"playbin uri=\"%s\" video-sink=\""
 		"appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
 		"caps=video/x-raw,width=%d,height=%d,format=%s\"",
-		mPath,
+		uri,
 		GST_SECOND,
 		width,
 		height,
 		format);
 
-	if (pipeline_cmd != nullptr)
+	if (!Internal::isNullOrEmpty(pipeline_cmd))
 	{
 		BIND_TO_SCOPE(pipeline_cmd);
 
 		mPipeline = gst_parse_launch(pipeline_cmd, nullptr);
-		if (!mPipeline) { close(); return status; }
+		if (mPipeline == nullptr)	{ close(); return success; }
 
 		mGstBus = gst_pipeline_get_bus(GST_PIPELINE(mPipeline));
-		if (!mGstBus) { close(); return status; }
+		if (mGstBus == nullptr)		{ close(); return success; }
 
 		GstAppSink *app_sink = nullptr;
-		g_object_get(mPipeline, "video-sink", &app_sink, nullptr);
-		if (!app_sink) { close(); return status; }
-
 		BIND_TO_SCOPE(app_sink);
+
+		g_object_get(mPipeline, "video-sink", &app_sink, nullptr);
+		if (app_sink == nullptr)	{ close(); return success; }
 
 		// Configure VideoSink's appsink:
 		typedef GstFlowReturn(*APP_SINK_CB) (GstAppSink*, gpointer);
-
 		GstAppSinkCallbacks		callbacks;
+
 		callbacks.eos = nullptr;
-		callbacks.new_preroll = APP_SINK_CB(&Internal::onPreroll);
-		callbacks.new_sample = APP_SINK_CB(&Internal::onSampled);
+		callbacks.new_preroll	= APP_SINK_CB(&Internal::onPreroll);
+		callbacks.new_sample	= APP_SINK_CB(&Internal::onSampled);
 
 		gst_app_sink_set_callbacks(app_sink, &callbacks, this, nullptr);
 
-		mWidth = width;
+		mWidth	= width;
 		mHeight = height;
 
-		status = true;
+		success = true;
 	}
 
-	return status;
+	return success;
 }
 
 bool Player::open(const gchar *path, gint width, gint height)
@@ -184,23 +197,11 @@ void Player::close()
 {
 	stop();
 
-	if (mPipeline)
-	{
-		gst_object_unref(mPipeline);
-	}
+	if (mPipeline != nullptr)		gst_object_unref(mPipeline);
+	if (mGstBus != nullptr)			gst_object_unref(mGstBus);
+	if (mCurrentBuffer != nullptr)	gst_buffer_unmap(mCurrentBuffer, &mCurrentMapInfo);
+	if (mCurrentSample != nullptr)	gst_sample_unref(mCurrentSample);
 
-	if (mGstBus)
-	{
-		gst_object_unref(mGstBus);
-	}
-
-	if (mCurrentBuffer) gst_buffer_unmap(mCurrentBuffer, &mCurrentMapInfo);
-	if (mCurrentSample) gst_sample_unref(mCurrentSample);
-
-	// free the fixed path
-	g_free(mPath);
-
-	// reset variables
 	Internal::reset(*this);
 }
 
@@ -229,7 +230,7 @@ void Player::play()
 
 void Player::replay()
 {
-	setTime(0);
+	stop();
 	play();
 }
 
@@ -240,9 +241,9 @@ void Player::pause()
 
 void Player::update()
 {
-	if (mGstBus)
+	if (mGstBus != nullptr)
 	{
-		while (gst_bus_have_pending(mGstBus))
+		while (gst_bus_have_pending(mGstBus) != FALSE)
 		{
 			if (GstMessage* msg = gst_bus_pop(mGstBus))
 			{
@@ -320,7 +321,7 @@ void Player::update()
 	{
 		onSample(
 			mCurrentMapInfo.data,
-			static_cast<guint>(mCurrentMapInfo.size));
+			mCurrentMapInfo.size);
 
 		// free current resources on previous frame
 		if (mCurrentBuffer) gst_buffer_unmap(mCurrentBuffer, &mCurrentMapInfo);
@@ -418,7 +419,7 @@ void Player::setMute(bool on)
 	if (on)
 	{
 		saved_volume = getVolume();
-		setVolume(0);
+		setVolume(0.);
 		mMute = true;
 	}
 	else
@@ -458,10 +459,10 @@ bool Discoverer::open(const gchar* path)
 	try
 	{
 		Internal::reset(*this);
-		if (!path) return false;
+		if (Internal::isNullOrEmpty(path)) return success;
 
 		gchar* uri = Internal::processPath(path);
-		if (!uri) return false;
+		if (Internal::isNullOrEmpty(uri)) return success;
 		BIND_TO_SCOPE(uri);
 
 		if (GstDiscoverer *discoverer = gst_discoverer_new(5 * GST_SECOND, nullptr))
@@ -559,15 +560,34 @@ gdouble Discoverer::getDuration() const
 // Internal implementation
 //////////////////////////////////////////////////////////////////////////
 
+template<> BindToScope<gchar>::~BindToScope()					{ g_free(pointer); pointer = nullptr; }
+template<> BindToScope<GList>::~BindToScope()					{ gst_discoverer_stream_info_list_free(pointer); pointer = nullptr; }
+template<> BindToScope<GError>::~BindToScope()					{ g_error_free(pointer); pointer = nullptr; }
+template<> BindToScope<GstAppSink>::~BindToScope()				{ g_object_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscoverer>::~BindToScope()			{ g_object_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscovererInfo>::~BindToScope()		{ gst_discoverer_info_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscovererStreamInfo>::~BindToScope()	{ gst_discoverer_stream_info_unref(pointer); pointer = nullptr; }
+
+bool Internal::isNullOrEmpty(const gchar* const str)
+{
+	return str == nullptr || !*str;
+}
+
 gchar* Internal::processPath(const gchar* path)
 {
+	if (isNullOrEmpty(path))
+	{
+		g_debug("Cannot process an empty path.");
+		return nullptr;
+	}
+
 	gchar* processed_path = nullptr;
 
 	if (g_file_test(path, G_FILE_TEST_EXISTS) != FALSE) {
 		// This will be NULL if path is already a valid URI
 		gchar* uri = g_filename_to_uri(path, nullptr, nullptr);
 
-		if (uri) {
+		if (!isNullOrEmpty(uri)) {
 			processed_path = uri;
 		} else {
 			processed_path = g_strdup(path);
@@ -580,7 +600,6 @@ gchar* Internal::processPath(const gchar* path)
 void Internal::reset(ngw::Player& player)
 {
 	player.mState			= GST_STATE_NULL;
-	player.mPath			= nullptr;
 	player.mPipeline		= nullptr;
 	player.mGstBus			= nullptr;
 	player.mCurrentBuffer	= nullptr;
@@ -622,7 +641,34 @@ bool Internal::gstreamerInitialized()
 
 GstFlowReturn Internal::onPreroll(GstElement* appsink, ngw::Player* player)
 {
-	processSample(player, gst_app_sink_pull_preroll(GST_APP_SINK(appsink)));
+	GstSample* sample = gst_app_sink_pull_preroll(GST_APP_SINK(appsink));
+
+	// Here's our chance to get the actual dimension of the media.
+	// The actual dimension might be slightly different from what
+	// is passed into and requested from the pipeline.
+	if (sample != nullptr)
+	{
+		if (GstCaps *caps = gst_sample_get_caps(player->mCurrentSample))
+		{
+			if (gst_caps_is_fixed(caps) != FALSE)
+			{
+				if (const GstStructure *str = gst_caps_get_structure(caps, 0))
+				{
+					if (gst_structure_get_int(str, "width", &player->mWidth) == FALSE ||
+						gst_structure_get_int(str, "height", &player->mHeight) == FALSE)
+					{
+						g_debug("No width/height information available.");
+					}
+				}
+			}
+			else
+			{
+				g_debug("caps is not fixed for this media.");
+			}
+		}
+	}
+
+	processSample(player, sample);
 	return GST_FLOW_OK;
 }
 

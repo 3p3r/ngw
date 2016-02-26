@@ -39,7 +39,7 @@ public:
 	gint			getHeight() const;
 
 protected:
-	virtual void	onSample(guchar* buf, guint size) {};
+	virtual void	onSample(guchar* buf, gsize size) {};
 	virtual void	onError(const gchar* msg) {};
 	virtual void	onState(GstState) {};
 	virtual void	onStreamEnd() {};
@@ -59,7 +59,6 @@ private:
 	mutable gdouble	mTime;
 	mutable gdouble	mVolume;
 
-	gchar			*mPath;
 	volatile gint	mBufferDirty;
 	mutable gdouble	mPendingSeek;
 	mutable bool	mSeekingLock;
