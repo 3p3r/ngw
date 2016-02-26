@@ -39,10 +39,10 @@ public:
 	gint			getHeight() const;
 
 protected:
-	virtual void	onSample(guchar* buf, gsize size) {};
-	virtual void	onError(const gchar* msg) {};
-	virtual void	onState(GstState) {};
-	virtual void	onStreamEnd() {};
+	virtual void	onSample(guchar* buf, gsize size) const {};
+	virtual void	onError(const gchar* msg) const {};
+	virtual void	onState(GstState) const {};
+	virtual void	onStreamEnd() const {};
 
 private:
 	friend			class Internal;
@@ -69,7 +69,7 @@ private:
 class Discoverer
 {
 public:
-	bool			open(const gchar* uri);
+	bool			open(const gchar* path);
 	gint			getWidth() const;
 	gint			getHeight() const;
 	gfloat			getFramerate() const;
