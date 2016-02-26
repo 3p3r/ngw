@@ -41,8 +41,7 @@ Player::Player()
 	Internal::reset(*this);
 	if (!Internal::gstreamerInitialized())
 	{
-		g_debug("You will not be able to use ngw. %s",
-				"GStreamer could not be initialized.");
+		onError("GStreamer could not be initialized.");
 	}
 }
 
@@ -102,8 +101,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 	bool success = false;
 	if (!Internal::gstreamerInitialized())
 	{
-		g_debug("You cannot open a media with ngw. %s",
-				"GStreamer could not be initialized.");
+		onError("You cannot open a media with ngw.");
 		return success;
 	}
 
@@ -112,13 +110,13 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 
 	if (Internal::isNullOrEmpty(path))
 	{
-		g_debug("Supplied media path is empty.");
+		onError("Supplied media path is empty.");
 		return success;
 	}
 
 	if (Internal::isNullOrEmpty(fmt))
 	{
-		g_debug("Supplied media format is empty.");
+		onError("Supplied media format is empty.");
 		return success;
 	}
 
@@ -145,16 +143,31 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 		BIND_TO_SCOPE(pipeline_cmd);
 
 		mPipeline = gst_parse_launch(pipeline_cmd, nullptr);
-		if (mPipeline == nullptr)	{ close(); return success; }
+		if (mPipeline == nullptr)
+		{
+			close();
+			onError("Unable to launch the pipeline.");
+			return success;
+		}
 
 		mGstBus = gst_pipeline_get_bus(GST_PIPELINE(mPipeline));
-		if (mGstBus == nullptr)		{ close(); return success; }
+		if (mGstBus == nullptr)
+		{
+			close();
+			onError("Unable to obtain pipeline's bus.");
+			return success;
+		}
 
 		GstAppSink *app_sink = nullptr;
 		BIND_TO_SCOPE(app_sink);
 
 		g_object_get(mPipeline, "video-sink", &app_sink, nullptr);
-		if (app_sink == nullptr)	{ close(); return success; }
+		if (app_sink == nullptr)
+		{
+			close();
+			onError("Unable to obtain pipeline's video sink.");
+			return success;
+		}
 
 		// Configure VideoSink's appsink:
 		typedef GstFlowReturn(*APP_SINK_CB) (GstAppSink*, gpointer);
@@ -175,7 +188,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 		if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
 			state != GST_STATE_READY)
 		{
-			g_debug("Failed to put pipeline in READY state.");
+			onError("Failed to put pipeline in READY state.");
 			return success;
 		}
 
@@ -183,11 +196,15 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 		if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
 			state != GST_STATE_PAUSED)
 		{
-			g_debug("Failed to put pipeline in PAUSE state.");
+			onError("Failed to put pipeline in PAUSE state.");
 			return success;
 		}
 
 		success = true;
+	}
+	else
+	{
+		onError("Pipeline string is empty.");
 	}
 
 	return success;
@@ -272,7 +289,7 @@ void Player::update()
 					GError *err = nullptr;
 					BIND_TO_SCOPE(err);
 					gst_message_parse_error(msg, &err, nullptr);
-					g_debug("pipeline encountered an error: %s.", err->message);
+					onError(err->message);
 					close();
 				}
 				break;
@@ -675,13 +692,13 @@ GstFlowReturn Internal::onPreroll(GstElement* appsink, ngw::Player* player)
 					if (gst_structure_get_int(str, "width", &player->mWidth) == FALSE ||
 						gst_structure_get_int(str, "height", &player->mHeight) == FALSE)
 					{
-						g_debug("No width/height information available.");
+						player->onError("No width/height information available.");
 					}
 				}
 			}
 			else
 			{
-				g_debug("caps is not fixed for this media.");
+				player->onError("caps is not fixed for this media.");
 			}
 		}
 	}
