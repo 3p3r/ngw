@@ -5,15 +5,14 @@
 namespace ngw
 {
 
+void                addPluginPath(const gchar* path);
+void                addBinaryPath(const gchar* path);
+
 class Player
 {
 public:
     Player();
     virtual         ~Player();
-    static void     addPluginPath(const gchar* path);
-    static void     addBinaryPath(const gchar* path);
-
-public:
     bool            open(const gchar *path, gint width, gint height, const gchar* fmt);
     bool            open(const gchar *path, gint width, gint height);
     bool            open(const gchar *path, const gchar* fmt);

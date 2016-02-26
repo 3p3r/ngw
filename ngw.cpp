@@ -50,7 +50,7 @@ Player::~Player()
     close();
 }
 
-void Player::addPluginPath(const gchar* path)
+void addPluginPath(const gchar* path)
 {
     if (Internal::isNullOrEmpty(path))
     {
@@ -70,7 +70,7 @@ void Player::addPluginPath(const gchar* path)
     }
 }
 
-void Player::addBinaryPath(const gchar* path)
+void addBinaryPath(const gchar* path)
 {
     if (Internal::isNullOrEmpty(path))
     {
