@@ -8,27 +8,27 @@ struct _Discoverer  final : public ngw::Discoverer { };
 extern "C" {
 #endif // __cplusplus
 
-void ngw_add_plugin_path(const char* path) {
+NGWAPI(void) ngw_add_plugin_path(const char* path) {
     ngw::addPluginPath(path);
 }
 
-void ngw_add_binary_path(const char* path) {
+NGWAPI(void) ngw_add_binary_path(const char* path) {
     ngw::addBinaryPath(path);
 }
 
-Player* ngw_player_make(void) {
+NGWAPI(Player*) ngw_player_make(void) {
     return new Player();
 }
 
-void ngw_player_free(Player* player) {
+NGWAPI(void) ngw_player_free(Player* player) {
     delete player;
 }
 
-Discoverer* ngw_discoverer_make(void) {
+NGWAPI(Discoverer*) ngw_discoverer_make(void) {
     return new Discoverer();
 }
 
-void ngw_discoverer_free(Discoverer* discoverer) {
+NGWAPI(void) ngw_discoverer_free(Discoverer* discoverer) {
     delete discoverer;
 }
 
