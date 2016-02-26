@@ -90,7 +90,7 @@ void Player::addBinaryPath(const gchar* path)
 		path_var = g_strdup_printf("%s;%s", g_getenv("PATH"), path);
 	}
 
-	if (g_setenv("PATH", path_var, TRUE) == FALSE)
+	if (g_setenv("PATH", scoped_path_var.pointer, TRUE) == FALSE)
 	{
 		g_debug("Unable to append %s to PATH.", path);
 	}
@@ -132,7 +132,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 		"playbin uri=\"%s\" video-sink=\""
 		"appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
 		"caps=video/x-raw,width=%d,height=%d,format=%s\"",
-		uri,
+		scoped_uri.pointer,
 		GST_SECOND,
 		width,
 		height,
@@ -142,7 +142,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 	{
 		BIND_TO_SCOPE(pipeline_cmd);
 
-		mPipeline = gst_parse_launch(pipeline_cmd, nullptr);
+		mPipeline = gst_parse_launch(scoped_pipeline_cmd.pointer, nullptr);
 		if (mPipeline == nullptr)
 		{
 			close();
@@ -177,7 +177,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 		callbacks.new_preroll	= APP_SINK_CB(&Internal::onPreroll);
 		callbacks.new_sample	= APP_SINK_CB(&Internal::onSampled);
 
-		gst_app_sink_set_callbacks(app_sink, &callbacks, this, nullptr);
+		gst_app_sink_set_callbacks(scoped_app_sink.pointer, &callbacks, this, nullptr);
 
 		// Going from NULL => READY => PAUSE forces the
 		// pipeline to pre-roll so we can get video dim
@@ -289,7 +289,7 @@ void Player::update()
 					GError *err = nullptr;
 					BIND_TO_SCOPE(err);
 					gst_message_parse_error(msg, &err, nullptr);
-					onError(err->message);
+					onError(scoped_err.pointer->message);
 					close();
 				}
 				break;
@@ -503,21 +503,21 @@ bool Discoverer::open(const gchar* path)
 		if (GstDiscoverer *discoverer = gst_discoverer_new(5 * GST_SECOND, nullptr))
 		{
 			BIND_TO_SCOPE(discoverer);
-			if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, uri, nullptr))
+			if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, scoped_uri.pointer, nullptr))
 			{
 				BIND_TO_SCOPE(info);
-				if (gst_discoverer_info_get_result(info) == GST_DISCOVERER_OK)
+				if (gst_discoverer_info_get_result(scoped_info.pointer) == GST_DISCOVERER_OK)
 				{
 					if (GList *video_streams = gst_discoverer_info_get_video_streams(info))
 					{
 						BIND_TO_SCOPE(video_streams);
-						mHasVideo = true;
+						mHasVideo = (scoped_video_streams.pointer != nullptr);
 					}
 
 					if (GList *audio_streams = gst_discoverer_info_get_audio_streams(info))
 					{
 						BIND_TO_SCOPE(audio_streams);
-						mHasAudio = true;
+						mHasAudio = (scoped_audio_streams.pointer != nullptr);
 					}
 
 					mSeekable = gst_discoverer_info_get_seekable(info) != FALSE;
@@ -527,12 +527,12 @@ bool Discoverer::open(const gchar* path)
 					if (GstDiscovererStreamInfo *sinfo = gst_discoverer_info_get_stream_info(info))
 					{
 						BIND_TO_SCOPE(sinfo);
-						if (GST_IS_DISCOVERER_CONTAINER_INFO(sinfo))
+						if (GST_IS_DISCOVERER_CONTAINER_INFO(scoped_sinfo.pointer))
 						{
 							if (GList *streams = gst_discoverer_container_info_get_streams(GST_DISCOVERER_CONTAINER_INFO(sinfo)))
 							{
 								BIND_TO_SCOPE(streams);
-								for (GList *curr = streams; curr; curr = curr->next)
+								for (GList *curr = scoped_streams.pointer; curr; curr = curr->next)
 								{
 									GstDiscovererStreamInfo *curr_sinfo = (GstDiscovererStreamInfo *)curr->data;
 									if (GST_IS_DISCOVERER_VIDEO_INFO(curr_sinfo))
@@ -667,7 +667,7 @@ bool Internal::gstreamerInitialized()
 
 	if (gst_is_initialized() == FALSE &&
 		gst_init_check(nullptr, nullptr, &init_error) == FALSE) {
-		g_debug("GStreamer failed to initialize: %s.", init_error->message);
+		g_debug("GStreamer failed to initialize: %s.", scoped_init_error.pointer->message);
 		return false;
 	} else {
 		return true;
