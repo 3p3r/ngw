@@ -166,8 +166,26 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
 
 		gst_app_sink_set_callbacks(app_sink, &callbacks, this, nullptr);
 
-		mWidth	= width;
-		mHeight = height;
+		// Going from NULL => READY => PAUSE forces the
+		// pipeline to pre-roll so we can get video dim
+
+		GstState state;
+
+		gst_element_set_state(mPipeline, GST_STATE_READY);
+		if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+			state != GST_STATE_READY)
+		{
+			g_debug("Failed to put pipeline in READY state.");
+			return success;
+		}
+
+		gst_element_set_state(mPipeline, GST_STATE_PAUSED);
+		if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+			state != GST_STATE_PAUSED)
+		{
+			g_debug("Failed to put pipeline in PAUSE state.");
+			return success;
+		}
 
 		success = true;
 	}
