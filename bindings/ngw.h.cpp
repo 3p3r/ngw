@@ -1,11 +1,10 @@
 #include "ngw.h"
 #include "ngw.hpp"
 
-#define GST_USE_UNSTABLE_API
 #ifdef _WIN32
-#include <windows.h>
+#   include <windows.h>
 #endif // _WIN32
-#include <gst/gl/gl.h>
+#include <gst/gl/gstglapi.h>
 
 struct _Player final : public ngw::Player {
 public:
