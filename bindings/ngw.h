@@ -30,6 +30,11 @@ typedef struct      _Player     Player;
 typedef struct      _Discoverer Discoverer;
 typedef int         NgwBool;
 typedef int         NgwState;
+typedef enum {
+    NGW_BUFFER_BYTE_POINTER         = 0,
+    NGW_BUFFER_OPENGL_TEXTURE       = 1,
+    NGW_BUFFER_CALLBACK_FUNCTION    = 2,
+} NgwBuffer;
 
 NGWAPI(void)        ngw_add_plugin_path(const char* path);
 NGWAPI(void)        ngw_add_binary_path(const char* path);

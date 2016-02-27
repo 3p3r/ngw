@@ -1,7 +1,28 @@
 #include "ngw.h"
 #include "ngw.hpp"
+#include <cstring>
 
-struct _Player      final : public ngw::Player { };
+struct _Player final : public ngw::Player {
+public:
+    void setBuffer(void* buffer, NgwBuffer type) {
+        if (mBuffer == buffer && mBufferType == type) return;
+        mBufferType = type;
+        mBuffer = buffer;
+    }
+    void onSample(guchar* buf, gsize size) const override {
+        if (mBuffer == nullptr) return;
+        if (mBufferType == NGW_BUFFER_BYTE_POINTER) {
+            std::memcpy(mBuffer, buf, static_cast<unsigned int>(size));
+        } else if (mBufferType == NGW_BUFFER_CALLBACK_FUNCTION) {
+            // call a callback, to do
+        } else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE) {
+            // copy to texture, to do
+        }
+    }
+private:
+    void        *mBuffer    = nullptr;
+    NgwBuffer   mBufferType = NGW_BUFFER_BYTE_POINTER;
+};
 struct _Discoverer  final : public ngw::Discoverer { };
 
 #ifdef __cplusplus
