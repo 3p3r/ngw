@@ -80,6 +80,66 @@ NGWAPI(void) ngw_player_close(Player* player) {
     player->close();
 }
 
+NGWAPI(void) ngw_player_set_state(Player* player, NgwState state) {
+    player->setState(GstState(state));
+}
+
+NGWAPI(NgwState) ngw_player_get_state(Player* player) {
+    return NgwState(player->getState());
+}
+
+NGWAPI(void) ngw_player_stop(Player* player) {
+    player->stop();
+}
+
+NGWAPI(void) ngw_player_play(Player* player) {
+    player->play();
+}
+
+NGWAPI(void) ngw_player_replay(Player* player) {
+    player->replay();
+}
+
+NGWAPI(void) ngw_player_pause(Player* player) {
+    player->pause();
+}
+
+NGWAPI(void) ngw_player_update(Player* player) {
+    player->update();
+}
+
+NGWAPI(void) ngw_player_set_time(Player* player, double time) {
+    player->setTime(time);
+}
+
+NGWAPI(double) ngw_player_get_time(Player* player) {
+    return player->getTime();
+}
+
+NGWAPI(void) ngw_player_set_volume(Player* player, double volume) {
+    player->setVolume(volume);
+}
+
+NGWAPI(double) ngw_player_get_volume(Player* player) {
+    return player->getVolume();
+}
+
+NGWAPI(void) ngw_player_set_mute(Player* player, NgwBool on) {
+    player->setMute(on != NGW_BOOL_FALSE);
+}
+
+NGWAPI(NgwBool) ngw_player_get_mute(Player* player) {
+    return player->getMute() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
+}
+
+NGWAPI(int) ngw_player_get_width(Player* player) {
+    return player->getWidth();
+}
+
+NGWAPI(int) ngw_player_get_height(Player* player) {
+    return player->getHeight();
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
