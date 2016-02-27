@@ -1,28 +1,110 @@
 #include "ngw.h"
 #include "ngw.hpp"
-#include <cstring>
+
+#define GST_USE_UNSTABLE_API
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
+#include <gst/gl/gl.h>
 
 struct _Player final : public ngw::Player {
 public:
-    void setBuffer(void* buffer, NgwBuffer type) {
-        if (mBuffer == buffer && mBufferType == type) return;
-        mBufferType = type;
-        mBuffer = buffer;
-    }
-    void onSample(guchar* buf, gsize size) const override {
-        if (mBuffer == nullptr) return;
-        if (mBufferType == NGW_BUFFER_BYTE_POINTER) {
-            std::memcpy(mBuffer, buf, static_cast<unsigned int>(size));
-        } else if (mBufferType == NGW_BUFFER_CALLBACK_FUNCTION) {
-            // call a callback, to do
-        } else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE) {
-            // copy to texture, to do
-        }
-    }
+    void        setUserData(gpointer data);
+    gpointer    getUserData() const;
+    void        setSampleBuffer(void* buffer, NgwBuffer type);
+    void        setErrorCallback(NGW_ERROR_CALLBACK_TYPE cb);
+    void        setStateCallback(NGW_STATE_CALLBACK_TYPE cb);
+    void        setStreamEndCallback(NGW_STREAM_END_CALLBACK_TYPE cb);
+
+protected:
+    void        onFrame(guchar* buf, gsize size) const override;
+    void        onError(const gchar* msg) const override;
+    void        onState(GstState state) const override;
+    void        onStreamEnd() const override;
+
 private:
-    void        *mBuffer    = nullptr;
+    gpointer    mBuffer     = nullptr;
+    gpointer    mUserData   = nullptr;
     NgwBuffer   mBufferType = NGW_BUFFER_BYTE_POINTER;
+
+    NGW_ERROR_CALLBACK_TYPE         mErrorCallback      = nullptr;
+    NGW_STATE_CALLBACK_TYPE         mStateCallback      = nullptr;
+    NGW_STREAM_END_CALLBACK_TYPE    mStreamEndCallback  = nullptr;
 };
+
+void _Player::setUserData(gpointer data)
+{
+    mUserData = data;
+}
+
+gpointer _Player::getUserData() const
+{
+    return mUserData;
+}
+
+void _Player::setSampleBuffer(void* buffer, NgwBuffer type)
+{
+    if (mBuffer == buffer && mBufferType == type) return;
+    mBufferType = type;
+    mBuffer = buffer;
+}
+
+void _Player::onFrame(guchar* buf, gsize size) const
+{
+    if (mBuffer == nullptr) return;
+    if (mBufferType == NGW_BUFFER_BYTE_POINTER) {
+        gst_buffer_extract(getBuffer(), 0, mBuffer, size);
+    }
+    else if (mBufferType == NGW_BUFFER_CALLBACK_FUNCTION) {
+        (NGW_FRAME_CALLBACK_TYPE(mBuffer))(buf, static_cast<unsigned int>(size), this);
+    }
+    else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE) {
+        ::glBindTexture(GL_TEXTURE_2D, GLuint(mBuffer));
+        ::glTexSubImage2D(
+            GL_TEXTURE_2D,
+            0, 0, 0,
+            getWidth(),
+            getHeight(),
+            0x80E1, // GL_BGRA
+            GL_UNSIGNED_BYTE,
+            buf);
+        ::glBindTexture(GL_TEXTURE_2D, NULL);
+    }
+}
+
+void _Player::setErrorCallback(NGW_ERROR_CALLBACK_TYPE cb)
+{
+    mErrorCallback = cb;
+}
+
+void _Player::setStateCallback(NGW_STATE_CALLBACK_TYPE cb)
+{
+    mStateCallback = cb;
+}
+
+void _Player::setStreamEndCallback(NGW_STREAM_END_CALLBACK_TYPE cb)
+{
+    mStreamEndCallback = cb;
+}
+
+void _Player::onError(const gchar* msg) const
+{
+    if (mErrorCallback != nullptr)
+        mErrorCallback(msg, this);
+}
+
+void _Player::onState(GstState state) const
+{
+    if (mStateCallback != nullptr)
+        mStateCallback(int(state), this);
+}
+
+void _Player::onStreamEnd() const
+{
+    if (mStreamEndCallback != nullptr)
+        mStreamEndCallback(this);
+}
+
 struct _Discoverer  final : public ngw::Discoverer { };
 
 #ifdef __cplusplus
@@ -159,6 +241,30 @@ NGWAPI(int) ngw_player_get_width(Player* player) {
 
 NGWAPI(int) ngw_player_get_height(Player* player) {
     return player->getHeight();
+}
+
+NGWAPI(void) ngw_player_set_user_data(Player* player, void *data) {
+    player->setUserData(data);
+}
+
+NGWAPI(void*) ngw_player_get_user_data(Player* player) {
+    return player->getUserData();
+}
+
+NGWAPI(void) ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type) {
+    player->setSampleBuffer(buffer, type);
+}
+
+NGWAPI(void) ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb) {
+    player->setErrorCallback(cb);
+}
+
+NGWAPI(void) ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb) {
+    player->setStateCallback(cb);
+}
+
+NGWAPI(void) ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb) {
+    player->setStreamEndCallback(cb);
 }
 
 #ifdef __cplusplus

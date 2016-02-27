@@ -37,6 +37,7 @@ TARGET_ADD_GSTREAMER_MODULES( ngw.static
 ADD_LIBRARY( ngw SHARED ${NGW_BINDINGS}/ngw.h ${NGW_BINDINGS}/ngw.h.cpp )
 TARGET_ADD_GSTREAMER_MODULES( ngw
 	gstreamer-1.0
+	gstreamer-gl-1.0
 	gstreamer-app-1.0
 	gstreamer-pbutils-1.0 )
 TARGET_LINK_LIBRARIES( ngw ngw.static )
