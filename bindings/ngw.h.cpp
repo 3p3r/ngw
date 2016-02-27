@@ -45,19 +45,39 @@ NGWAPI(float) ngw_discoverer_get_framerate(Discoverer* discoverer) {
 }
 
 NGWAPI(NgwBool) ngw_discoverer_get_has_video(Discoverer* discoverer) {
-    return discoverer->getHasVideo() != NGW_BOOL_FALSE;
+    return discoverer->getHasVideo() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
 NGWAPI(NgwBool) ngw_discoverer_get_has_audio(Discoverer* discoverer) {
-    return discoverer->getHasAudio() != NGW_BOOL_FALSE;
+    return discoverer->getHasAudio() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
 NGWAPI(NgwBool) ngw_discoverer_get_seekable(Discoverer* discoverer) {
-    return discoverer->getSeekable() != NGW_BOOL_FALSE;
+    return discoverer->getSeekable() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
 NGWAPI(double) ngw_discoverer_get_duration(Discoverer* discoverer) {
     return discoverer->getDuration();
+}
+
+NGWAPI(NgwBool) ngw_player_open(Player* player, const char* path) {
+    return player->open(path) ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
+}
+
+NGWAPI(NgwBool) ngw_player_open_format(Player* player, const char* path, const char* fmt) {
+    return player->open(path, fmt);
+}
+
+NGWAPI(NgwBool) ngw_player_open_resize(Player* player, const char* path, int width, int height) {
+    return player->open(path, width, height);
+}
+
+NGWAPI(NgwBool) ngw_player_open_resize_format(Player* player, const char* path, int width, int height, const char* fmt) {
+    return player->open(path, width, height, fmt);
+}
+
+NGWAPI(void) ngw_player_close(Player* player) {
+    player->close();
 }
 
 #ifdef __cplusplus

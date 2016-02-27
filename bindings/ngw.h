@@ -19,8 +19,8 @@
 #endif // NGWVISIBILITY
 
 #define NGWAPI(type) NGWVISIBILITY type NGWCALLCONV
-#define NGW_BOOL_FALSE  0;
-#define NGW_BOOL_TRUE   1;
+#define NGW_BOOL_FALSE  0
+#define NGW_BOOL_TRUE   1
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,8 +32,15 @@ typedef int     NgwBool;
 
 NGWAPI(void)        ngw_add_plugin_path(const char* path);
 NGWAPI(void)        ngw_add_binary_path(const char* path);
+
 NGWAPI(Player*)     ngw_player_make(void);
+NGWAPI(NgwBool)     ngw_player_open(Player* player, const char* path);
+NGWAPI(NgwBool)     ngw_player_open_format(Player* player, const char* path, const char* fmt);
+NGWAPI(NgwBool)     ngw_player_open_resize(Player* player, const char* path, int width, int height);
+NGWAPI(NgwBool)     ngw_player_open_resize_format(Player* player, const char* path, int width, int height, const char* fmt);
+NGWAPI(void)        ngw_player_close(Player* player);
 NGWAPI(void)        ngw_player_free(Player* player);
+
 NGWAPI(Discoverer*) ngw_discoverer_make(void);
 NGWAPI(int)         ngw_discoverer_get_width(Discoverer* discoverer);
 NGWAPI(int)         ngw_discoverer_get_height(Discoverer* discoverer);
