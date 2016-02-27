@@ -38,10 +38,14 @@ public:
     gint            getHeight() const;
 
 protected:
-    virtual void    onSample(guchar* buf, gsize size) const {};
+    virtual void    onFrame(guchar* buf, gsize size) const {};
     virtual void    onError(const gchar* msg) const {};
     virtual void    onState(GstState) const {};
     virtual void    onStreamEnd() const {};
+
+    GstMapInfo      getMapInfo() const;
+    GstSample*      getSample() const;
+    GstBuffer*      getBuffer() const;
 
 private:
     friend          class Internal;

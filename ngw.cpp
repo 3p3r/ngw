@@ -354,7 +354,7 @@ void Player::update()
 
     if (g_atomic_int_get(&mBufferDirty) != FALSE)
     {
-        onSample(
+        onFrame(
             mCurrentMapInfo.data,
             mCurrentMapInfo.size);
 
@@ -478,6 +478,21 @@ gint Player::getWidth() const
 gint Player::getHeight() const
 {
     return mHeight;
+}
+
+GstMapInfo Player::getMapInfo() const
+{
+    return mCurrentMapInfo;
+}
+
+GstSample* Player::getSample() const
+{
+    return mCurrentSample;
+}
+
+GstBuffer* Player::getBuffer() const
+{
+    return mCurrentBuffer;
 }
 
 bool Discoverer::open(const gchar* path)
