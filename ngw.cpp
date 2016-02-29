@@ -282,7 +282,9 @@ void Player::update()
         {
             if (GstMessage* msg = gst_bus_pop(mGstBus))
             {
-                switch (GST_MESSAGE_TYPE(msg))
+				BIND_TO_SCOPE(msg);
+
+                switch (GST_MESSAGE_TYPE(scoped_msg.pointer))
                 {
                 case GST_MESSAGE_ERROR:
                 {
@@ -349,8 +351,6 @@ void Player::update()
                 default:
                     break;
                 }
-
-                gst_message_unref(msg);
             }
         }
     }
@@ -616,6 +616,7 @@ gdouble Discoverer::getDuration() const
 template<> BindToScope<gchar>::~BindToScope()                   { g_free(pointer); pointer = nullptr; }
 template<> BindToScope<GList>::~BindToScope()                   { gst_discoverer_stream_info_list_free(pointer); pointer = nullptr; }
 template<> BindToScope<GError>::~BindToScope()                  { g_error_free(pointer); pointer = nullptr; }
+template<> BindToScope<GstMessage>::~BindToScope()              { gst_message_unref(pointer); pointer = nullptr; }
 template<> BindToScope<GstAppSink>::~BindToScope()              { g_object_unref(pointer); pointer = nullptr; }
 template<> BindToScope<GstDiscoverer>::~BindToScope()           { g_object_unref(pointer); pointer = nullptr; }
 template<> BindToScope<GstDiscovererInfo>::~BindToScope()       { gst_discoverer_info_unref(pointer); pointer = nullptr; }
