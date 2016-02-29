@@ -185,7 +185,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
         GstState state;
 
         gst_element_set_state(mPipeline, GST_STATE_READY);
-        if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+        if (gst_element_get_state(mPipeline, &state, nullptr, 10. * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
             state != GST_STATE_READY)
         {
             onError("Failed to put pipeline in READY state.");
@@ -193,7 +193,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
         }
 
         gst_element_set_state(mPipeline, GST_STATE_PAUSED);
-        if (gst_element_get_state(mPipeline, &state, nullptr, GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+        if (gst_element_get_state(mPipeline, &state, nullptr, 10. * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
             state != GST_STATE_PAUSED)
         {
             onError("Failed to put pipeline in PAUSE state.");
@@ -505,6 +505,10 @@ void Player::setRate(gdouble rate)
     if (gst_element_send_event(mPipeline, seek_event) != FALSE) {
         mRate = rate;
     }
+    else {
+        onError("Pipeline did not handle the set rate event. Probably media does not support it.");
+        gst_object_unref(seek_event);
+    }
 }
 
 gdouble Player::getRate() const
@@ -666,15 +670,13 @@ gchar* Internal::processPath(const gchar* path)
 
     gchar* processed_path = nullptr;
 
-    if (g_file_test(path, G_FILE_TEST_EXISTS) != FALSE) {
-        // This will be NULL if path is already a valid URI
-        gchar* uri = g_filename_to_uri(path, nullptr, nullptr);
+    // This will be NULL if path is already a valid URI
+    gchar* uri = g_filename_to_uri(path, nullptr, nullptr);
 
-        if (!isNullOrEmpty(uri)) {
-            processed_path = uri;
-        } else {
-            processed_path = g_strdup(path);
-        }
+    if (!isNullOrEmpty(uri)) {
+        processed_path = uri;
+    } else {
+        processed_path = g_strdup(path);
     }
 
     return processed_path;
