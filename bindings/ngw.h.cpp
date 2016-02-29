@@ -58,7 +58,7 @@ void _Player::onFrame(guchar* buf, gsize size) const
         (NGW_FRAME_CALLBACK_TYPE(mBuffer))(buf, static_cast<unsigned int>(size), this);
     }
     else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE) {
-        ::glBindTexture(GL_TEXTURE_2D, GLuint(mBuffer));
+        ::glBindTexture(GL_TEXTURE_2D, (GLuint)(gsize)mBuffer);
         ::glTexSubImage2D(
             GL_TEXTURE_2D,
             0, 0, 0,
