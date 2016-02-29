@@ -119,29 +119,29 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
     Discoverer discoverer;
     if (discoverer.open(path))
     {
-        mMediaMeta          = discoverer;
+        Discoverer discoverer;
         gchar* pipeline_cmd = nullptr;
         BIND_TO_SCOPE(pipeline_cmd);
 
-        if (mMediaMeta.getHasVideo())
+        if (discoverer.getHasVideo())
         {
             // Create the pipeline expression
             pipeline_cmd = g_strdup_printf(
                 "playbin uri=\"%s\" video-sink=\""
                 "appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
                 "caps=video/x-raw,width=%d,height=%d,format=%s\"",
-                mMediaMeta.getPath(),
+                discoverer.getPath(),
                 GST_SECOND,
                 width,
                 height,
                 Internal::isNullOrEmpty(fmt) ? "BGRA" : fmt);
         }
-        else if (mMediaMeta.getHasAudio())
+        else if (discoverer.getHasAudio())
         {
             // Create the pipeline expression
             pipeline_cmd = g_strdup_printf(
                 "playbin uri=\"%s\"",
-                mMediaMeta.getPath());
+                discoverer.getPath());
         }
         else
         {
@@ -167,7 +167,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
                 return success;
             }
 
-            if (mMediaMeta.getHasVideo())
+            if (discoverer.getHasVideo())
             {
                 GstAppSink *app_sink = nullptr;
                 BIND_TO_SCOPE(app_sink);
@@ -528,11 +528,6 @@ gdouble Player::getRate() const
     return mRate;
 }
 
-const Discoverer& Player::getMeta() const
-{
-    return mMediaMeta;
-}
-
 GstMapInfo Player::getMapInfo() const
 {
     return mCurrentMapInfo;
@@ -546,6 +541,25 @@ GstSample* Player::getSample() const
 GstBuffer* Player::getBuffer() const
 {
     return mCurrentBuffer;
+}
+
+Discoverer::Discoverer(const Discoverer& rhs)
+{
+    Internal::reset(*this);
+    
+    mPath       = g_strdup(rhs.getPath());
+    mWidth      = rhs.getWidth();
+    mHeight     = rhs.getHeight();
+    mFramerate  = rhs.getFramerate();
+    mHasAudio   = rhs.getHasAudio();
+    mHasVideo   = rhs.getHasVideo();
+    mSeekable   = rhs.getSeekable();
+    mDuration   = rhs.getDuration();
+}
+
+Discoverer::Discoverer()
+{
+    Internal::reset(*this);
 }
 
 Discoverer::~Discoverer()
@@ -714,7 +728,6 @@ gchar* Internal::processPath(const gchar* path)
 
 void Internal::reset(ngw::Player& player)
 {
-    player.mMediaMeta     = Discoverer();
     player.mState         = GST_STATE_NULL;
     player.mPipeline      = nullptr;
     player.mGstBus        = nullptr;

@@ -8,32 +8,6 @@ namespace ngw
 void                addPluginPath(const gchar* path);
 void                addBinaryPath(const gchar* path);
 
-class Discoverer
-{
-public:
-    virtual         ~Discoverer();
-    bool            open(const gchar* path);
-    const gchar*    getPath() const;
-    gint            getWidth() const;
-    gint            getHeight() const;
-    gfloat          getFramerate() const;
-    bool            getHasVideo() const;
-    bool            getHasAudio() const;
-    bool            getSeekable() const;
-    gdouble         getDuration() const;
-
-private:
-    friend          class       Internal;
-    gchar*          mPath       = nullptr;  //!< Path to the discovered media
-    gint            mWidth      = 0;        //!< Width of the discovered media
-    gint            mHeight     = 0;        //!< Height of the discovered media
-    gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
-    gdouble         mDuration   = 0;        //!< Duration of the discovered media
-    bool            mHasVideo   = false;    //!< Indicates whether media has video or not
-    bool            mHasAudio   = false;    //!< Indicates whether media has audio or not
-    bool            mSeekable   = false;    //!< Indicates whether media is seek able or not
-};
-
 class Player
 {
 public:
@@ -64,7 +38,6 @@ public:
     gint            getHeight() const;
     void            setRate(gdouble rate);
     gdouble         getRate() const;
-    const Discoverer& getMeta() const;
 
 protected:
     virtual void    onFrame(guchar* buf, gsize size) const {};
@@ -78,7 +51,6 @@ protected:
 
 private:
     friend          class Internal;
-    Discoverer      mMediaMeta;             //!< Meta data retrieved prior to opening the media
     GstState        mState;                 //!< Current state of the player (playing, paused, etc.)
     GstMapInfo      mCurrentMapInfo;        //!< Mapped Buffer info, ONLY valid inside onFrame(...)
     GstSample       *mCurrentSample;        //!< Mapped Sample, ONLY valid inside onFrame(...)
@@ -98,6 +70,34 @@ private:
     mutable bool    mSeekingLock;           //!< Boolean flag, indicating a seek operation pending to be executed
     bool            mLoop       = false;    //!< Flag, indicating whether the player is looping or not
     bool            mMute       = false;    //!< Flag, indicating whether the player is muted or not
+};
+
+class Discoverer
+{
+public:
+    Discoverer();
+    Discoverer(const Discoverer&);
+    virtual         ~Discoverer();
+    bool            open(const gchar* path);
+    const gchar*    getPath() const;
+    gint            getWidth() const;
+    gint            getHeight() const;
+    gfloat          getFramerate() const;
+    bool            getHasVideo() const;
+    bool            getHasAudio() const;
+    bool            getSeekable() const;
+    gdouble         getDuration() const;
+
+private:
+    friend          class       Internal;
+    gchar*          mPath       = nullptr;  //!< Path to the discovered media
+    gint            mWidth      = 0;        //!< Width of the discovered media
+    gint            mHeight     = 0;        //!< Height of the discovered media
+    gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
+    gdouble         mDuration   = 0;        //!< Duration of the discovered media
+    bool            mHasVideo   = false;    //!< Indicates whether media has video or not
+    bool            mHasAudio   = false;    //!< Indicates whether media has audio or not
+    bool            mSeekable   = false;    //!< Indicates whether media is seek able or not
 };
 
 }

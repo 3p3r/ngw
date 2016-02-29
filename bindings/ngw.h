@@ -76,6 +76,7 @@ NGWAPI(void)        ngw_player_set_stream_end_callback(Player* player, NGW_STREA
 NGWAPI(void)        ngw_player_free(Player* player);
 
 NGWAPI(Discoverer*) ngw_discoverer_make(void);
+NGWAPI(const char*) ngw_discoverer_get_path(Discoverer* discoverer);
 NGWAPI(int)         ngw_discoverer_get_width(Discoverer* discoverer);
 NGWAPI(int)         ngw_discoverer_get_height(Discoverer* discoverer);
 NGWAPI(float)       ngw_discoverer_get_framerate(Discoverer* discoverer);
