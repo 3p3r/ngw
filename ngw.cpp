@@ -210,6 +210,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
                 return success;
             }
 
+            mDuration = discoverer.getDuration();
             success = true;
         }
         else
