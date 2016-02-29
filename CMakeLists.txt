@@ -41,3 +41,4 @@ TARGET_ADD_GSTREAMER_MODULES( ngw
 	gstreamer-app-1.0
 	gstreamer-pbutils-1.0 )
 TARGET_LINK_LIBRARIES( ngw ngw.static )
+TARGET_COMPILE_DEFINITIONS( ngw PUBLIC -DNGW_BUILD_DLL )
