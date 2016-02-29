@@ -51,25 +51,25 @@ protected:
 
 private:
     friend          class Internal;
-    GstState        mState;
-    GstMapInfo      mCurrentMapInfo;
-    GstSample       *mCurrentSample;
-    GstBuffer       *mCurrentBuffer;
-    GstElement      *mPipeline;
-    GstBus          *mGstBus;
+    GstState        mState;                 //!< Current state of the player (playing, paused, etc.)
+    GstMapInfo      mCurrentMapInfo;        //!< Mapped Buffer info, ONLY valid inside onFrame(...)
+    GstSample       *mCurrentSample;        //!< Mapped Sample, ONLY valid inside onFrame(...)
+    GstBuffer       *mCurrentBuffer;        //!< Mapped Buffer, ONLY valid inside onFrame(...)
+    GstElement      *mPipeline;             //!< GStreamer pipeline (play-bin) object
+    GstBus          *mGstBus;               //!< Bus associated with mPipeline
 
-    mutable gint    mWidth;
-    mutable gint    mHeight;
-    mutable gdouble mDuration;
-    mutable gdouble mTime;
-    mutable gdouble mVolume;
-    mutable gdouble mRate;
+    mutable gint    mWidth      = 0;        //!< Width of the video being played. Valid after a call to open(...)
+    mutable gint    mHeight     = 0;        //!< Height of the video being played. Valid after a call to open(...)
+    mutable gdouble mDuration   = 0.;       //!< Duration of the media being played
+    mutable gdouble mTime       = 0.;       //!< Current time of the media being played (current position)
+    mutable gdouble mVolume     = 1.;       //!< Volume of the media being played
+    mutable gdouble mRate       = 1.;       //!< Rate of playback, negative number for reverse playback
 
-    volatile gint   mBufferDirty;
-    mutable gdouble mPendingSeek;
-    mutable bool    mSeekingLock;
-    bool            mLoop;
-    bool            mMute;
+    volatile gint   mBufferDirty;           //!< Atomic boolean, representing a new frame is ready by GStreamer
+    mutable gdouble mPendingSeek;           //!< Value of the seek operation pending to be executed
+    mutable bool    mSeekingLock;           //!< Boolean flag, indicating a seek operation pending to be executed
+    bool            mLoop       = false;    //!< Flag, indicating whether the player is looping or not
+    bool            mMute       = false;    //!< Flag, indicating whether the player is muted or not
 };
 
 class Discoverer
@@ -85,14 +85,14 @@ public:
     gdouble         getDuration() const;
 
 private:
-    friend          class        Internal;
-    gint            mWidth       = 0;
-    gint            mHeight      = 0;
-    gfloat          mFramerate   = 0;
-    gdouble         mDuration    = 0;
-    bool            mHasVideo    = false;
-    bool            mHasAudio    = false;
-    bool            mSeekable    = false;
+    friend          class       Internal;
+    gint            mWidth      = 0;        //!< Width of the discovered media
+    gint            mHeight     = 0;        //!< Height of the discovered media
+    gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
+    gdouble         mDuration   = 0;        //!< Duration of the discovered media
+    bool            mHasVideo   = false;    //!< Indicates whether media has video or not
+    bool            mHasAudio   = false;    //!< Indicates whether media has audio or not
+    bool            mSeekable   = false;    //!< Indicates whether media is seek able or not
 };
 
 }
