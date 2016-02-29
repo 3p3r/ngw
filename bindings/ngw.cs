@@ -171,6 +171,6 @@ namespace ngw
         [DllImport("ngw")]
         private static extern void ngw_discoverer_free(System.IntPtr discoverer);
         
-    } // class NanoGstWrapperGlue
+    } // class NativeMethods
     
 } // namespace ngw
