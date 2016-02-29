@@ -119,7 +119,6 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
     Discoverer discoverer;
     if (discoverer.open(path))
     {
-        Discoverer discoverer;
         gchar* pipeline_cmd = nullptr;
         BIND_TO_SCOPE(pipeline_cmd);
 
