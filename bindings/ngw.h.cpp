@@ -166,6 +166,14 @@ NGWAPI(double) ngw_discoverer_get_duration(Discoverer* discoverer) {
     return discoverer->getDuration();
 }
 
+NGWAPI(unsigned) ngw_discoverer_get_sample_rate(Discoverer* discoverer) {
+    return discoverer->getSampleRate();
+}
+
+NGWAPI(unsigned) ngw_discoverer_get_bit_rate(Discoverer* discoverer) {
+    return discoverer->getBitRate();
+}
+
 NGWAPI(NgwBool) ngw_player_open(Player* player, const char* path) {
     return player->open(path) ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }

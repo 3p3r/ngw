@@ -84,6 +84,8 @@ NGWAPI(NgwBool)     ngw_discoverer_get_has_video(Discoverer* discoverer);
 NGWAPI(NgwBool)     ngw_discoverer_get_has_audio(Discoverer* discoverer);
 NGWAPI(NgwBool)     ngw_discoverer_get_seekable(Discoverer* discoverer);
 NGWAPI(double)      ngw_discoverer_get_duration(Discoverer* discoverer);
+NGWAPI(unsigned)    ngw_discoverer_get_sample_rate(Discoverer* discoverer);
+NGWAPI(unsigned)    ngw_discoverer_get_bit_rate(Discoverer* discoverer);
 NGWAPI(void)        ngw_discoverer_free(Discoverer* discoverer);
 
 #ifdef __cplusplus

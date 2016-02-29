@@ -172,6 +172,10 @@ public:
     bool            getSeekable() const;
     //! Answers duration of the discovered media
     gdouble         getDuration() const;
+    //! Returns sample rate of the associated audio stream (0 if missing)
+    guint           getSampleRate() const;
+    //! Returns bit rate of the associated audio stream (0 if missing)
+    guint           getBitRate() const;
 
 private:
     friend          class       Internal;
@@ -180,6 +184,8 @@ private:
     gint            mHeight     = 0;        //!< Height of the discovered media
     gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
     gdouble         mDuration   = 0;        //!< Duration of the discovered media
+    guint           mSampleRate = 0;        //!< Sample rate of the discovered media (audio)
+    guint           mBitRate    = 0;        //!< Bit rate of the discovered media in bits/second (audio)
     bool            mHasVideo   = false;    //!< Indicates whether media has video or not
     bool            mHasAudio   = false;    //!< Indicates whether media has audio or not
     bool            mSeekable   = false;    //!< Indicates whether media is seek able or not

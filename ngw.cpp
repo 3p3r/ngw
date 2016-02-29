@@ -596,43 +596,43 @@ bool Discoverer::open(const gchar* path)
                 {
                     if (GList *video_streams = gst_discoverer_info_get_video_streams(info))
                     {
+                        mHasVideo = true;
                         BIND_TO_SCOPE(video_streams);
-                        mHasVideo = (scoped_video_streams.pointer != nullptr);
+
+                        for (GList *curr = scoped_video_streams.pointer; curr; curr = curr->next)
+                        {
+                            GstDiscovererStreamInfo *curr_sinfo = (GstDiscovererStreamInfo *)curr->data;
+
+                            if (GST_IS_DISCOVERER_VIDEO_INFO(curr_sinfo))
+                            {
+                                mWidth      = gst_discoverer_video_info_get_width(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
+                                mHeight     = gst_discoverer_video_info_get_height(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
+                                mFramerate  = gst_discoverer_video_info_get_framerate_num(GST_DISCOVERER_VIDEO_INFO(curr_sinfo))
+                                    / float(gst_discoverer_video_info_get_framerate_denom(GST_DISCOVERER_VIDEO_INFO(curr_sinfo)));
+                            }
+                        }
                     }
 
                     if (GList *audio_streams = gst_discoverer_info_get_audio_streams(info))
                     {
+                        mHasAudio = true;
                         BIND_TO_SCOPE(audio_streams);
-                        mHasAudio = (scoped_audio_streams.pointer != nullptr);
+
+                        for (GList *curr = scoped_audio_streams.pointer; curr; curr = curr->next)
+                        {
+                            GstDiscovererStreamInfo *curr_sinfo = (GstDiscovererStreamInfo *)curr->data;
+
+                            if (GST_IS_DISCOVERER_AUDIO_INFO(curr_sinfo))
+                            {
+                                mSampleRate = gst_discoverer_audio_info_get_sample_rate(GST_DISCOVERER_AUDIO_INFO(curr_sinfo));
+                                mBitRate    = gst_discoverer_audio_info_get_bitrate(GST_DISCOVERER_AUDIO_INFO(curr_sinfo));
+                            }
+                        }
                     }
 
                     mSeekable = gst_discoverer_info_get_seekable(info) != FALSE;
                     mDuration = gst_discoverer_info_get_duration(info) / gdouble(GST_SECOND);
-                    success = true; // rest is video-specific
-
-                    if (GstDiscovererStreamInfo *sinfo = gst_discoverer_info_get_stream_info(info))
-                    {
-                        BIND_TO_SCOPE(sinfo);
-                        if (GST_IS_DISCOVERER_CONTAINER_INFO(scoped_sinfo.pointer))
-                        {
-                            if (GList *streams = gst_discoverer_container_info_get_streams(GST_DISCOVERER_CONTAINER_INFO(sinfo)))
-                            {
-                                BIND_TO_SCOPE(streams);
-                                for (GList *curr = scoped_streams.pointer; curr; curr = curr->next)
-                                {
-                                    GstDiscovererStreamInfo *curr_sinfo = (GstDiscovererStreamInfo *)curr->data;
-                                    if (GST_IS_DISCOVERER_VIDEO_INFO(curr_sinfo))
-                                    {
-                                        mWidth = gst_discoverer_video_info_get_width(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
-                                        mHeight = gst_discoverer_video_info_get_height(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
-                                        mFramerate = gst_discoverer_video_info_get_framerate_num(GST_DISCOVERER_VIDEO_INFO(curr_sinfo))
-                                            / float(gst_discoverer_video_info_get_framerate_denom(GST_DISCOVERER_VIDEO_INFO(curr_sinfo)));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    success = true;
                 }
             }
         }
@@ -684,6 +684,16 @@ bool Discoverer::getSeekable() const
 gdouble Discoverer::getDuration() const
 {
     return mDuration;
+}
+
+guint Discoverer::getSampleRate() const
+{
+    return mSampleRate;
+}
+
+guint Discoverer::getBitRate() const
+{
+    return mBitRate;
 }
 
 //////////////////////////////////////////////////////////////////////////
