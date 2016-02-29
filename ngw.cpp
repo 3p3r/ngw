@@ -25,12 +25,12 @@ class Internal
 public:
     static bool            isNullOrEmpty(const gchar* const str);
     static gchar*          processPath(const gchar* path);
-    static void            reset(ngw::Player& player);
+    static void            reset(Player& player);
     static void            reset(Discoverer& discoverer);
     static bool            gstreamerInitialized();
-    static GstFlowReturn   onPreroll(GstElement* appsink, ngw::Player* player);
-    static GstFlowReturn   onSampled(GstElement* appsink, ngw::Player* player);
-    static void            processSample(ngw::Player *const player, GstSample* const sample);
+    static GstFlowReturn   onPreroll(GstElement* appsink, Player* player);
+    static GstFlowReturn   onSampled(GstElement* appsink, Player* player);
+    static void            processSample(Player *const player, GstSample* const sample);
     static void            processDuration(Player& player);
 };
 
@@ -62,6 +62,7 @@ void addPluginPath(const gchar* path)
     {
         g_debug("You are not able to add plug-in path. %s",
                 "GStreamer could not be initialized.");
+        return;
     }
 
     if (GstRegistry *registry = gst_registry_get())
