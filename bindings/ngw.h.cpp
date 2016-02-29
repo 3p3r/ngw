@@ -110,179 +110,179 @@ struct _Discoverer  final : public ngw::Discoverer { };
 extern "C" {
 #endif // __cplusplus
 
-NGWAPI(void) ngw_add_plugin_path(const char* path) {
+NGWAPI void ngw_add_plugin_path(const char* path) {
     ngw::addPluginPath(path);
 }
 
-NGWAPI(void) ngw_add_binary_path(const char* path) {
+NGWAPI void ngw_add_binary_path(const char* path) {
     ngw::addBinaryPath(path);
 }
 
-NGWAPI(Player*) ngw_player_make(void) {
+NGWAPI Player* ngw_player_make(void) {
     return new Player();
 }
 
-NGWAPI(void) ngw_player_free(Player* player) {
+NGWAPI void ngw_player_free(Player* player) {
     delete player;
 }
 
-NGWAPI(Discoverer*) ngw_discoverer_make(void) {
+NGWAPI Discoverer* ngw_discoverer_make(void) {
     return new Discoverer();
 }
 
-NGWAPI(const char*) ngw_discoverer_get_path(Discoverer* discoverer) {
+NGWAPI const char* ngw_discoverer_get_path(Discoverer* discoverer) {
     return discoverer->getPath();
 }
 
-NGWAPI(void) ngw_discoverer_free(Discoverer* discoverer) {
+NGWAPI void ngw_discoverer_free(Discoverer* discoverer) {
     delete discoverer;
 }
 
-NGWAPI(int) ngw_discoverer_get_width(Discoverer* discoverer) {
+NGWAPI int ngw_discoverer_get_width(Discoverer* discoverer) {
     return discoverer->getWidth();
 }
 
-NGWAPI(int) ngw_discoverer_get_height(Discoverer* discoverer) {
+NGWAPI int ngw_discoverer_get_height(Discoverer* discoverer) {
     return discoverer->getHeight();
 }
 
-NGWAPI(float) ngw_discoverer_get_framerate(Discoverer* discoverer) {
+NGWAPI float ngw_discoverer_get_framerate(Discoverer* discoverer) {
     return discoverer->getFramerate();
 }
 
-NGWAPI(NgwBool) ngw_discoverer_get_has_video(Discoverer* discoverer) {
+NGWAPI NgwBool ngw_discoverer_get_has_video(Discoverer* discoverer) {
     return discoverer->getHasVideo() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI(NgwBool) ngw_discoverer_get_has_audio(Discoverer* discoverer) {
+NGWAPI NgwBool ngw_discoverer_get_has_audio(Discoverer* discoverer) {
     return discoverer->getHasAudio() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI(NgwBool) ngw_discoverer_get_seekable(Discoverer* discoverer) {
+NGWAPI NgwBool ngw_discoverer_get_seekable(Discoverer* discoverer) {
     return discoverer->getSeekable() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI(double) ngw_discoverer_get_duration(Discoverer* discoverer) {
+NGWAPI double ngw_discoverer_get_duration(Discoverer* discoverer) {
     return discoverer->getDuration();
 }
 
-NGWAPI(unsigned) ngw_discoverer_get_sample_rate(Discoverer* discoverer) {
+NGWAPI unsigned ngw_discoverer_get_sample_rate(Discoverer* discoverer) {
     return discoverer->getSampleRate();
 }
 
-NGWAPI(unsigned) ngw_discoverer_get_bit_rate(Discoverer* discoverer) {
+NGWAPI unsigned ngw_discoverer_get_bit_rate(Discoverer* discoverer) {
     return discoverer->getBitRate();
 }
 
-NGWAPI(NgwBool) ngw_player_open(Player* player, const char* path) {
+NGWAPI NgwBool ngw_player_open(Player* player, const char* path) {
     return player->open(path) ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI(NgwBool) ngw_player_open_format(Player* player, const char* path, const char* fmt) {
+NGWAPI NgwBool ngw_player_open_format(Player* player, const char* path, const char* fmt) {
     return player->open(path, fmt);
 }
 
-NGWAPI(NgwBool) ngw_player_open_resize(Player* player, const char* path, int width, int height) {
+NGWAPI NgwBool ngw_player_open_resize(Player* player, const char* path, int width, int height) {
     return player->open(path, width, height);
 }
 
-NGWAPI(NgwBool) ngw_player_open_resize_format(Player* player, const char* path, int width, int height, const char* fmt) {
+NGWAPI NgwBool ngw_player_open_resize_format(Player* player, const char* path, int width, int height, const char* fmt) {
     return player->open(path, width, height, fmt);
 }
 
-NGWAPI(void) ngw_player_close(Player* player) {
+NGWAPI void ngw_player_close(Player* player) {
     player->close();
 }
 
-NGWAPI(void) ngw_player_set_state(Player* player, NgwState state) {
+NGWAPI void ngw_player_set_state(Player* player, NgwState state) {
     player->setState(GstState(state));
 }
 
-NGWAPI(NgwState) ngw_player_get_state(Player* player) {
+NGWAPI NgwState ngw_player_get_state(Player* player) {
     return NgwState(player->getState());
 }
 
-NGWAPI(void) ngw_player_stop(Player* player) {
+NGWAPI void ngw_player_stop(Player* player) {
     player->stop();
 }
 
-NGWAPI(void) ngw_player_play(Player* player) {
+NGWAPI void ngw_player_play(Player* player) {
     player->play();
 }
 
-NGWAPI(void) ngw_player_replay(Player* player) {
+NGWAPI void ngw_player_replay(Player* player) {
     player->replay();
 }
 
-NGWAPI(void) ngw_player_pause(Player* player) {
+NGWAPI void ngw_player_pause(Player* player) {
     player->pause();
 }
 
-NGWAPI(void) ngw_player_update(Player* player) {
+NGWAPI void ngw_player_update(Player* player) {
     player->update();
 }
 
-NGWAPI(void) ngw_player_set_time(Player* player, double time) {
+NGWAPI void ngw_player_set_time(Player* player, double time) {
     player->setTime(time);
 }
 
-NGWAPI(double) ngw_player_get_time(Player* player) {
+NGWAPI double ngw_player_get_time(Player* player) {
     return player->getTime();
 }
 
-NGWAPI(void) ngw_player_set_volume(Player* player, double volume) {
+NGWAPI void ngw_player_set_volume(Player* player, double volume) {
     player->setVolume(volume);
 }
 
-NGWAPI(double) ngw_player_get_volume(Player* player) {
+NGWAPI double ngw_player_get_volume(Player* player) {
     return player->getVolume();
 }
 
-NGWAPI(void) ngw_player_set_mute(Player* player, NgwBool on) {
+NGWAPI void ngw_player_set_mute(Player* player, NgwBool on) {
     player->setMute(on != NGW_BOOL_FALSE);
 }
 
-NGWAPI(NgwBool) ngw_player_get_mute(Player* player) {
+NGWAPI NgwBool ngw_player_get_mute(Player* player) {
     return player->getMute() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI(int) ngw_player_get_width(Player* player) {
+NGWAPI int ngw_player_get_width(Player* player) {
     return player->getWidth();
 }
 
-NGWAPI(int) ngw_player_get_height(Player* player) {
+NGWAPI int ngw_player_get_height(Player* player) {
     return player->getHeight();
 }
 
-NGWAPI(void) ngw_player_set_rate(Player* player, double rate) {
+NGWAPI void ngw_player_set_rate(Player* player, double rate) {
     player->setRate(rate);
 }
 
-NGWAPI(double) ngw_player_get_rate(Player* player) {
+NGWAPI double ngw_player_get_rate(Player* player) {
     return player->getRate();
 }
 
-NGWAPI(void) ngw_player_set_user_data(Player* player, void *data) {
+NGWAPI void ngw_player_set_user_data(Player* player, void *data) {
     player->setUserData(data);
 }
 
-NGWAPI(void*) ngw_player_get_user_data(Player* player) {
+NGWAPI void* ngw_player_get_user_data(Player* player) {
     return player->getUserData();
 }
 
-NGWAPI(void) ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type) {
+NGWAPI void ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type) {
     player->setSampleBuffer(buffer, type);
 }
 
-NGWAPI(void) ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb) {
+NGWAPI void ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb) {
     player->setErrorCallback(cb);
 }
 
-NGWAPI(void) ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb) {
+NGWAPI void ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb) {
     player->setStateCallback(cb);
 }
 
-NGWAPI(void) ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb) {
+NGWAPI void ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb) {
     player->setStreamEndCallback(cb);
 }
 
