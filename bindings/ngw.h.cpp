@@ -242,6 +242,14 @@ NGWAPI(int) ngw_player_get_height(Player* player) {
     return player->getHeight();
 }
 
+NGWAPI(void) ngw_player_set_rate(Player* player, double rate) {
+    player->setRate(rate);
+}
+
+NGWAPI(double) ngw_player_get_rate(Player* player) {
+    return player->getRate();
+}
+
 NGWAPI(void) ngw_player_set_user_data(Player* player, void *data) {
     player->setUserData(data);
 }

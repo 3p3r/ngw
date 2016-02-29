@@ -65,6 +65,8 @@ NGWAPI(void)        ngw_player_set_mute(Player* player, NgwBool on);
 NGWAPI(NgwBool)     ngw_player_get_mute(Player* player);
 NGWAPI(int)         ngw_player_get_width(Player* player);
 NGWAPI(int)         ngw_player_get_height(Player* player);
+NGWAPI(void)        ngw_player_set_rate(Player* player, double rate);
+NGWAPI(double)      ngw_player_get_rate(Player* player);
 NGWAPI(void)        ngw_player_set_user_data(Player* player, void *data);
 NGWAPI(void*)       ngw_player_get_user_data(Player* player);
 NGWAPI(void)        ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type);
