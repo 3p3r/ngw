@@ -154,7 +154,7 @@ void NgwCinderApp::openVideo(const std::string& path)
 
     if (mPlayer.open(path.c_str()))
     {
-        if (mPlayer.getMeta().getHasVideo())
+        if (mPlayer.getWidth() > 0 && mPlayer.getHeight() > 0)
         {
             mTexture = gl::Texture::create(mPlayer.getWidth(), mPlayer.getHeight());
             mPlayer.mTexture = mTexture;
