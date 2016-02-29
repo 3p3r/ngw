@@ -296,6 +296,9 @@ void Player::update()
 
                 case GST_MESSAGE_STATE_CHANGED:
                 {
+					if (GST_MESSAGE_SRC(msg) != GST_OBJECT(mPipeline))
+						break;
+
                     GstState old_state = GST_STATE_NULL;
                     gst_message_parse_state_changed(msg, &old_state, &mState, nullptr);
 
