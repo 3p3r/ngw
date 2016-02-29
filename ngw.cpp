@@ -19,6 +19,7 @@ template< class T > struct no_ptr        { typedef T type; };
 template< class T > struct no_ptr<T*>    { typedef T type; };
 #define BIND_TO_SCOPE(var) BindToScope<\
     no_ptr<decltype(var)>::type> scoped_##var(var);
+#define DISCOVER_TIMEOUT (10 * GST_SECOND)
 
 class Internal
 {
@@ -115,97 +116,107 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
         return success;
     }
 
-    if (Internal::isNullOrEmpty(fmt))
+    Discoverer discoverer;
+    if (discoverer.open(path))
     {
-        onError("Supplied media format is empty.");
-        return success;
-    }
-
-    // Acquire the new path
-    gchar *uri = Internal::processPath(path);
-    BIND_TO_SCOPE(uri);
-
-    // Check if passed format is null, if yes supply a default one.
-    const gchar* format = Internal::isNullOrEmpty(fmt) ? "BGRA" : fmt;
-
-    // Create the pipeline expression
-    gchar* pipeline_cmd = g_strdup_printf(
-        "playbin uri=\"%s\" video-sink=\""
-        "appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
-        "caps=video/x-raw,width=%d,height=%d,format=%s\"",
-        scoped_uri.pointer,
-        GST_SECOND,
-        width,
-        height,
-        format);
-
-    if (!Internal::isNullOrEmpty(pipeline_cmd))
-    {
+        mMediaMeta          = discoverer;
+        gchar* pipeline_cmd = nullptr;
         BIND_TO_SCOPE(pipeline_cmd);
 
-        mPipeline = gst_parse_launch(scoped_pipeline_cmd.pointer, nullptr);
-        if (mPipeline == nullptr)
+        if (mMediaMeta.getHasVideo())
         {
-            close();
-            onError("Unable to launch the pipeline.");
+            // Create the pipeline expression
+            pipeline_cmd = g_strdup_printf(
+                "playbin uri=\"%s\" video-sink=\""
+                "appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
+                "caps=video/x-raw,width=%d,height=%d,format=%s\"",
+                mMediaMeta.getPath(),
+                GST_SECOND,
+                width,
+                height,
+                Internal::isNullOrEmpty(fmt) ? "BGRA" : fmt);
+        }
+        else if (mMediaMeta.getHasAudio())
+        {
+            // Create the pipeline expression
+            pipeline_cmd = g_strdup_printf(
+                "playbin uri=\"%s\"",
+                mMediaMeta.getPath());
+        }
+        else
+        {
+            onError("Media provided does not contain neither audio nor video.");
             return success;
         }
 
-        mGstBus = gst_pipeline_get_bus(GST_PIPELINE(mPipeline));
-        if (mGstBus == nullptr)
+        if (!Internal::isNullOrEmpty(scoped_pipeline_cmd.pointer))
         {
-            close();
-            onError("Unable to obtain pipeline's bus.");
-            return success;
+            mPipeline = gst_parse_launch(scoped_pipeline_cmd.pointer, nullptr);
+            if (mPipeline == nullptr)
+            {
+                close();
+                onError("Unable to launch the pipeline.");
+                return success;
+            }
+
+            mGstBus = gst_pipeline_get_bus(GST_PIPELINE(mPipeline));
+            if (mGstBus == nullptr)
+            {
+                close();
+                onError("Unable to obtain pipeline's bus.");
+                return success;
+            }
+
+            if (mMediaMeta.getHasVideo())
+            {
+                GstAppSink *app_sink = nullptr;
+                BIND_TO_SCOPE(app_sink);
+
+                g_object_get(mPipeline, "video-sink", &app_sink, nullptr);
+                if (app_sink == nullptr)
+                {
+                    close();
+                    onError("Unable to obtain pipeline's video sink.");
+                    return success;
+                }
+
+                // Configure VideoSink's appsink:
+                typedef GstFlowReturn(*APP_SINK_CB) (GstAppSink*, gpointer);
+                GstAppSinkCallbacks callbacks;
+
+                callbacks.eos           = nullptr;
+                callbacks.new_preroll   = APP_SINK_CB(&Internal::onPreroll);
+                callbacks.new_sample    = APP_SINK_CB(&Internal::onSampled);
+
+                gst_app_sink_set_callbacks(scoped_app_sink.pointer, &callbacks, this, nullptr);
+            }
+
+            // Going from NULL => READY => PAUSE forces the
+            // pipeline to pre-roll so we can get video dim
+            GstState state;
+
+            gst_element_set_state(mPipeline, GST_STATE_READY);
+            if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+                state != GST_STATE_READY)
+            {
+                onError("Failed to put pipeline in READY state.");
+                return success;
+            }
+
+            gst_element_set_state(mPipeline, GST_STATE_PAUSED);
+            if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+                state != GST_STATE_PAUSED)
+            {
+                onError("Failed to put pipeline in PAUSE state.");
+                return success;
+            }
+
+            success = true;
         }
-
-        GstAppSink *app_sink = nullptr;
-        BIND_TO_SCOPE(app_sink);
-
-        g_object_get(mPipeline, "video-sink", &app_sink, nullptr);
-        if (app_sink == nullptr)
+        else
         {
-            close();
-            onError("Unable to obtain pipeline's video sink.");
-            return success;
+            onError("Pipeline string is empty.");
         }
-
-        // Configure VideoSink's appsink:
-        typedef GstFlowReturn(*APP_SINK_CB) (GstAppSink*, gpointer);
-        GstAppSinkCallbacks callbacks;
-
-        callbacks.eos = nullptr;
-        callbacks.new_preroll = APP_SINK_CB(&Internal::onPreroll);
-        callbacks.new_sample  = APP_SINK_CB(&Internal::onSampled);
-
-        gst_app_sink_set_callbacks(scoped_app_sink.pointer, &callbacks, this, nullptr);
-
-        // Going from NULL => READY => PAUSE forces the
-        // pipeline to pre-roll so we can get video dim
-
-        GstState state;
-
-        gst_element_set_state(mPipeline, GST_STATE_READY);
-        if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
-            state != GST_STATE_READY)
-        {
-            onError("Failed to put pipeline in READY state.");
-            return success;
-        }
-
-        gst_element_set_state(mPipeline, GST_STATE_PAUSED);
-        if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
-            state != GST_STATE_PAUSED)
-        {
-            onError("Failed to put pipeline in PAUSE state.");
-            return success;
-        }
-
-        success = true;
-    }
-    else
-    {
-        onError("Pipeline string is empty.");
     }
 
     return success;
@@ -517,6 +528,11 @@ gdouble Player::getRate() const
     return mRate;
 }
 
+const Discoverer& Player::getMeta() const
+{
+    return mMediaMeta;
+}
+
 GstMapInfo Player::getMapInfo() const
 {
     return mCurrentMapInfo;
@@ -530,6 +546,11 @@ GstSample* Player::getSample() const
 GstBuffer* Player::getBuffer() const
 {
     return mCurrentBuffer;
+}
+
+Discoverer::~Discoverer()
+{
+    Internal::reset(*this);
 }
 
 bool Discoverer::open(const gchar* path)
@@ -548,14 +569,13 @@ bool Discoverer::open(const gchar* path)
         Internal::reset(*this);
         if (Internal::isNullOrEmpty(path)) return success;
 
-        gchar* uri = Internal::processPath(path);
-        if (Internal::isNullOrEmpty(uri)) return success;
-        BIND_TO_SCOPE(uri);
+        mPath = Internal::processPath(path);
+        if (Internal::isNullOrEmpty(mPath)) return success;
 
-        if (GstDiscoverer *discoverer = gst_discoverer_new(5 * GST_SECOND, nullptr))
+        if (GstDiscoverer *discoverer = gst_discoverer_new(DISCOVER_TIMEOUT, nullptr))
         {
             BIND_TO_SCOPE(discoverer);
-            if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, scoped_uri.pointer, nullptr))
+            if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, mPath, nullptr))
             {
                 BIND_TO_SCOPE(info);
                 if (gst_discoverer_info_get_result(scoped_info.pointer) == GST_DISCOVERER_OK)
@@ -603,9 +623,18 @@ bool Discoverer::open(const gchar* path)
             }
         }
     }
-    catch (...) { /* we don't care about exceptions here */ }
+    catch (...)
+    {
+        g_debug("Discoverer was unable to proceed due to exception. Are you missing binaries?");
+        success = false;
+    }
 
     return success;
+}
+
+const gchar* Discoverer::getPath() const
+{
+    return Internal::isNullOrEmpty(mPath) ? "" : mPath;
 }
 
 gint Discoverer::getWidth() const
@@ -685,6 +714,7 @@ gchar* Internal::processPath(const gchar* path)
 
 void Internal::reset(ngw::Player& player)
 {
+    player.mMediaMeta     = Discoverer();
     player.mState         = GST_STATE_NULL;
     player.mPipeline      = nullptr;
     player.mGstBus        = nullptr;
@@ -703,6 +733,12 @@ void Internal::reset(ngw::Player& player)
 
 void Internal::reset(Discoverer& discoverer)
 {
+    if (!isNullOrEmpty(discoverer.mPath))
+    {
+        g_free(discoverer.mPath);
+        discoverer.mPath = nullptr;
+    }
+
     discoverer.mWidth     = 0;
     discoverer.mHeight    = 0;
     discoverer.mFramerate = 0;
