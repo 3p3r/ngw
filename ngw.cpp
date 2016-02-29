@@ -282,7 +282,7 @@ void Player::update()
         {
             if (GstMessage* msg = gst_bus_pop(mGstBus))
             {
-				BIND_TO_SCOPE(msg);
+                BIND_TO_SCOPE(msg);
 
                 switch (GST_MESSAGE_TYPE(scoped_msg.pointer))
                 {
@@ -298,8 +298,8 @@ void Player::update()
 
                 case GST_MESSAGE_STATE_CHANGED:
                 {
-					if (GST_MESSAGE_SRC(msg) != GST_OBJECT(mPipeline))
-						break;
+                    if (GST_MESSAGE_SRC(msg) != GST_OBJECT(mPipeline))
+                        break;
 
                     GstState old_state = GST_STATE_NULL;
                     gst_message_parse_state_changed(msg, &old_state, &mState, nullptr);
@@ -483,6 +483,35 @@ gint Player::getHeight() const
     return mHeight;
 }
 
+void Player::setRate(gdouble rate)
+{
+    gint64 position      = 0;
+    GstEvent *seek_event = nullptr;
+
+    if (!gst_element_query_position(mPipeline, GST_FORMAT_TIME, &position)) {
+        onError("Unable to retrieve current position.\n");
+        return;
+    }
+
+    if (rate > 0) {
+        seek_event = gst_event_new_seek(rate, GST_FORMAT_TIME, GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
+            GST_SEEK_TYPE_SET, position, GST_SEEK_TYPE_NONE, 0);
+    }
+    else {
+        seek_event = gst_event_new_seek(rate, GST_FORMAT_TIME, GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
+            GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, position);
+    }
+
+    if (gst_element_send_event(mPipeline, seek_event) != FALSE) {
+        mRate = rate;
+    }
+}
+
+gdouble Player::getRate() const
+{
+    return mRate;
+}
+
 GstMapInfo Player::getMapInfo() const
 {
     return mCurrentMapInfo;
@@ -663,6 +692,7 @@ void Internal::reset(ngw::Player& player)
     player.mDuration      = 0;
     player.mTime          = 0.;
     player.mVolume        = 1.;
+    player.mRate          = 1.;
     player.mPendingSeek   = 0.;
     player.mSeekingLock   = false;
     g_atomic_int_set(&player.mBufferDirty, FALSE);

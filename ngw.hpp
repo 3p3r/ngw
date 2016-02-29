@@ -36,6 +36,8 @@ public:
     bool            getMute() const;
     gint            getWidth() const;
     gint            getHeight() const;
+    void            setRate(gdouble rate);
+    gdouble         getRate() const;
 
 protected:
     virtual void    onFrame(guchar* buf, gsize size) const {};
@@ -61,6 +63,7 @@ private:
     mutable gdouble mDuration;
     mutable gdouble mTime;
     mutable gdouble mVolume;
+    mutable gdouble mRate;
 
     volatile gint   mBufferDirty;
     mutable gdouble mPendingSeek;
