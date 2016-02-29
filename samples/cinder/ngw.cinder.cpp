@@ -93,7 +93,6 @@ void NgwCinderApp::setup()
     std::cout << "[m]: mute" << std::endl;
     std::cout << "[l]: loop" << std::endl;
     std::cout << "[c]: close" << std::endl;
-    std::cout << "[a]: auto-play" << std::endl;
     std::cout << "[f]: full-screen" << std::endl;
     std::cout << "[r]: reverse-playback" << std::endl;
 
@@ -155,8 +154,12 @@ void NgwCinderApp::openVideo(const std::string& path)
 
     if (mPlayer.open(path.c_str()))
     {
-        mTexture = gl::Texture::create(mPlayer.getWidth(), mPlayer.getHeight());
-        mPlayer.mTexture = mTexture;
+        if (mPlayer.getMeta().getHasVideo())
+        {
+            mTexture = gl::Texture::create(mPlayer.getWidth(), mPlayer.getHeight());
+            mPlayer.mTexture = mTexture;
+        }
+
         mPlayer.play();
     }
 }
@@ -178,7 +181,14 @@ void NgwCinderApp::draw()
         gl::drawSolidRect(getWindowBounds());
     }
 
-    ci::gl::drawString(std::to_string(getAverageFps()), glm::vec2(10, 10));
+    if (mPlayer.getState() == GST_STATE_NULL)
+    {
+        ci::gl::drawString("Drag and drop a media file to play.", glm::vec2(10, 10));
+    }
+    else
+    {
+        ci::gl::drawString(std::to_string(getAverageFps()), glm::vec2(10, 10));
+    }
 }
 
 CINDER_APP(NgwCinderApp, RendererGl, [](App::Settings* settings)
