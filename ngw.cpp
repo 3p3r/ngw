@@ -185,7 +185,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
         GstState state;
 
         gst_element_set_state(mPipeline, GST_STATE_READY);
-        if (gst_element_get_state(mPipeline, &state, nullptr, 10. * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+        if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
             state != GST_STATE_READY)
         {
             onError("Failed to put pipeline in READY state.");
@@ -193,7 +193,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
         }
 
         gst_element_set_state(mPipeline, GST_STATE_PAUSED);
-        if (gst_element_get_state(mPipeline, &state, nullptr, 10. * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
+        if (gst_element_get_state(mPipeline, &state, nullptr, 10 * GST_SECOND) == GST_STATE_CHANGE_FAILURE ||
             state != GST_STATE_PAUSED)
         {
             onError("Failed to put pipeline in PAUSE state.");
