@@ -136,6 +136,7 @@ namespace ngw
 
         public void play() { NativeMethods.ngw_player_play(mNativePlayer); }
         public void stop() { NativeMethods.ngw_player_stop(mNativePlayer); }
+        public void close() { NativeMethods.ngw_player_close(mNativePlayer); }
         public void pause() { NativeMethods.ngw_player_pause(mNativePlayer); }
         public void replay() { NativeMethods.ngw_player_replay(mNativePlayer); }
         public void update() { NativeMethods.ngw_player_update(mNativePlayer); }
