@@ -19,8 +19,10 @@ public class MediaPlayer : MonoBehaviour
 
     #region Public API
 
-    public UnityEvent           OnStreamEnded;
-    public UnityEvent           OnStreamOpened;
+    public UnityAction          OnStreamEnded;
+    public UnityAction          OnStreamOpened;
+    public UnityAction          OnStateChanged;
+    public UnityAction<string>  OnErrorReceived;
 
     [Serializable]
     public enum State
@@ -101,16 +103,20 @@ public class MediaPlayer : MonoBehaviour
 
     public void Open(string media)
     {
-        if (mPlayer.open(media)) {
+        if (mPlayer.open(media))
+        {
             AllocateFrameBuffer(mPlayer.width, mPlayer.height);
             mPlayer.setFrameBuffer(mFrameBuffer, mOpenGlRenderer
                 ? ngw.Player.BufferType.OPENGL_TEXTURE
                 : ngw.Player.BufferType.BYTE_POINTER);
             mMediaPath = media;
-            mPlayer.OnStreamEnded += () => { if (OnStreamEnded != null) OnStreamEnded.Invoke(); };
+
+            mPlayer.OnStreamEnded += () => { if (OnStreamEnded != null) OnStreamEnded(); };
+            mPlayer.OnStateChanged += (s) => { if (OnStateChanged != null) OnStateChanged(); };
+            mPlayer.OnErrorReceived += (msg) => { if (OnErrorReceived != null) OnErrorReceived(msg); };
 
             if (OnStreamOpened != null)
-                OnStreamOpened.Invoke();
+                OnStreamOpened();
         }
         else {
             ReleaseFrameBuffer();
@@ -209,7 +215,8 @@ public class MediaPlayerEditor : UnityEditor.Editor
             }
         }
 
-        if (GUILayout.Button("Play")) { player.Open(player.Path); player.Play(); }
+        if (GUILayout.Button("Open")) { player.Open(player.Path); }
+        if (GUILayout.Button("Play")) { player.Play(); }
         if (GUILayout.Button("Pause")) player.Pause();
         if (GUILayout.Button("Stop")) player.Stop();
         if (GUILayout.Button("Close")) player.Close();
