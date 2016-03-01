@@ -111,10 +111,6 @@ public class MediaPlayer : MonoBehaviour
                 : ngw.Player.BufferType.BYTE_POINTER);
             mMediaPath = media;
 
-            mPlayer.OnStreamEnded += () => { if (OnStreamEnded != null) OnStreamEnded(); };
-            mPlayer.OnStateChanged += (s) => { if (OnStateChanged != null) OnStateChanged(); };
-            mPlayer.OnErrorReceived += (msg) => { if (OnErrorReceived != null) OnErrorReceived(msg); };
-
             if (OnStreamOpened != null)
                 OnStreamOpened();
         }
@@ -167,6 +163,10 @@ public class MediaPlayer : MonoBehaviour
         }
 
         Application.runInBackground = true;
+
+        mPlayer.OnStreamEnded += () => { if (OnStreamEnded != null) OnStreamEnded(); };
+        mPlayer.OnStateChanged += (s) => { if (OnStateChanged != null) OnStateChanged(); };
+        mPlayer.OnErrorReceived += (msg) => { if (OnErrorReceived != null) OnErrorReceived(msg); };
     }
 
     void Update()
