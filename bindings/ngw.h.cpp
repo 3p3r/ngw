@@ -10,7 +10,7 @@ struct _Player final : public ngw::Player {
 public:
     void        setUserData(gpointer data);
     gpointer    getUserData() const;
-    void        setSampleBuffer(void* buffer, NgwBuffer type);
+    void        setFrameBuffer(void* buffer, NgwBuffer type);
     void        setErrorCallback(NGW_ERROR_CALLBACK_TYPE cb);
     void        setStateCallback(NGW_STATE_CALLBACK_TYPE cb);
     void        setStreamEndCallback(NGW_STREAM_END_CALLBACK_TYPE cb);
@@ -41,7 +41,7 @@ gpointer _Player::getUserData() const
     return mUserData;
 }
 
-void _Player::setSampleBuffer(void* buffer, NgwBuffer type)
+void _Player::setFrameBuffer(void* buffer, NgwBuffer type)
 {
     if (mBuffer == buffer && mBufferType == type) return;
     mBufferType = type;
@@ -270,8 +270,8 @@ NGWAPI void* ngw_player_get_user_data(Player* player) {
     return player->getUserData();
 }
 
-NGWAPI void ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type) {
-    player->setSampleBuffer(buffer, type);
+NGWAPI void ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type) {
+    player->setFrameBuffer(buffer, type);
 }
 
 NGWAPI void ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb) {

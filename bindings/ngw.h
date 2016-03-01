@@ -78,7 +78,7 @@ NGWAPI void        ngw_player_set_rate(Player* player, double rate);
 NGWAPI double      ngw_player_get_rate(Player* player);
 NGWAPI void        ngw_player_set_user_data(Player* player, void *data);
 NGWAPI void*       ngw_player_get_user_data(Player* player);
-NGWAPI void        ngw_player_set_sample_buffer(Player* player, void *buffer, NgwBuffer type);
+NGWAPI void        ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type);
 NGWAPI void        ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb);
 NGWAPI void        ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb);
 NGWAPI void        ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb);
