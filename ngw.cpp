@@ -266,6 +266,7 @@ GstState Player::getState() const
 void Player::stop()
 {
     setState(GST_STATE_NULL);
+    setState(GST_STATE_READY);
 }
 
 void Player::play()
