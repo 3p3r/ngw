@@ -222,6 +222,10 @@ NGWAPI void ngw_player_update(Player* player) {
     player->update();
 }
 
+NGWAPI double ngw_player_get_duration(Player* player) {
+    return player->getDuration();
+}
+
 NGWAPI void ngw_player_set_time(Player* player, double time) {
     player->setTime(time);
 }
@@ -244,6 +248,14 @@ NGWAPI void ngw_player_set_mute(Player* player, NgwBool on) {
 
 NGWAPI NgwBool ngw_player_get_mute(Player* player) {
     return player->getMute() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
+}
+
+NGWAPI void ngw_player_set_loop(Player* player, NgwBool on) {
+    player->setLoop(on != NGW_BOOL_FALSE);
+}
+
+NGWAPI NgwBool ngw_player_get_loop(Player* player) {
+    return player->getLoop() ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
 NGWAPI int ngw_player_get_width(Player* player) {
