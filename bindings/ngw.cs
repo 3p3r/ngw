@@ -154,9 +154,14 @@ namespace ngw
 
                 if (disposing)
                 {
-                    mErrorCallbackHandle.Free();
-                    mStateCallbackHandle.Free();
-                    mStEndCallbackHandle.Free();
+                    if (mErrorCallbackHandle.IsAllocated)
+                        mErrorCallbackHandle.Free();
+
+                    if (mStateCallbackHandle.IsAllocated)
+                        mStateCallbackHandle.Free();
+
+                    if (mStEndCallbackHandle.IsAllocated)
+                        mStEndCallbackHandle.Free();
                 }
             }
         }
@@ -387,9 +392,6 @@ namespace ngw
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ngw_discoverer_open(IntPtr discoverer, string path);
-
-        [DllImport("ngw")]
-        public static extern IntPtr ngw_discoverer_get_path(IntPtr discoverer);
 
         [DllImport("ngw")]
         public static extern int ngw_discoverer_get_width(IntPtr discoverer);
