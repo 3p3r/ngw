@@ -11,7 +11,24 @@ public class AutoPlay : MonoBehaviour
         MediaPlayer.OnStreamOpened += () =>
         {
             RawImage.texture = MediaPlayer.Texture;
-            Debug.LogFormat("MediaPlayer Opened a new stream. Path: {0}, Dim:{1}", MediaPlayer.Path, MediaPlayer.Dimension);
+
+            using (var discoverer = new ngw.Discoverer())
+            {
+                if (discoverer.open(MediaPlayer.Path))
+                {
+                    Debug.LogFormat("MediaPlayer Opened a new stream:\nPath: {0}, Width: {1}, Height: {2}, Video Framerate: {3}, Audio Samplerate: {4}, Bitrate: {5}, Duration: {6}, Audio? {7}, Video? {8}, Seekable? {9}",
+                        MediaPlayer.Path,
+                        discoverer.width,
+                        discoverer.height,
+                        discoverer.frameRate,
+                        discoverer.sampleRate,
+                        discoverer.bitRate,
+                        discoverer.duration,
+                        discoverer.hasAudio,
+                        discoverer.hasVideo,
+                        discoverer.seekable);
+                }
+            }
         };
 
         MediaPlayer.OnStreamEnded += ()=> {
