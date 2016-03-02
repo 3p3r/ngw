@@ -88,6 +88,7 @@ NGWAPI void        ngw_player_set_stream_end_callback(Player* player, NGW_STREAM
 NGWAPI void        ngw_player_free(Player* player);
 
 NGWAPI Discoverer* ngw_discoverer_make(void);
+NGWAPI NgwBool     ngw_discoverer_open(Discoverer* discoverer, const char* path);
 NGWAPI const char* ngw_discoverer_get_path(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_width(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_height(Discoverer* discoverer);
