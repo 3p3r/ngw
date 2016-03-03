@@ -62,8 +62,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\AutoPlay.cs" />
-    <Compile Include="Assets\ngw\MediaDiscoverer.cs" />
+    <Compile Include="Assets\ngw\Examples\Basic Playback\Example.cs" />
     <Compile Include="Assets\ngw\MediaPlayer.cs" />
     <Compile Include="Assets\ngw\NativeMethods.cs" />
   </ItemGroup>
