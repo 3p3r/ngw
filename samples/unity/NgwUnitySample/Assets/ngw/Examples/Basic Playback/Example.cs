@@ -22,8 +22,8 @@ public class Example : MonoBehaviour
                 {
                     if (discoverer.open(MediaPlayer.Path))
                     {
-                        Debug.LogFormat("MediaPlayer Opened a new stream:\nPath: {0}, Width: {1}, Height: {2}, Video Framerate: {3}, Audio Samplerate: {4}, Bitrate: {5}, Duration: {6}, Audio? {7}, Video? {8}, Seekable? {9}",
-                            MediaPlayer.Path,
+                        Debug.LogFormat("MediaPlayer Opened a new stream:\nURI: {0}, Width: {1}, Height: {2}, Video Framerate: {3}, Audio Samplerate: {4}, Bitrate: {5}, Duration: {6}, Audio? {7}, Video? {8}, Seekable? {9}",
+                            discoverer.uri,
                             discoverer.width,
                             discoverer.height,
                             discoverer.frameRate,
