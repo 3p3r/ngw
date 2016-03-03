@@ -89,7 +89,7 @@ NGWAPI void        ngw_player_free(Player* player);
 
 NGWAPI Discoverer* ngw_discoverer_make(void);
 NGWAPI NgwBool     ngw_discoverer_open(Discoverer* discoverer, const char* path);
-NGWAPI const char* ngw_discoverer_get_path(Discoverer* discoverer);
+NGWAPI const char* ngw_discoverer_get_uri(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_width(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_height(Discoverer* discoverer);
 NGWAPI float       ngw_discoverer_get_framerate(Discoverer* discoverer);

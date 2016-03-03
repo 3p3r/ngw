@@ -129,7 +129,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
                 "playbin uri=\"%s\" video-sink=\""
                 "appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
                 "caps=video/x-raw,width=%d,height=%d,format=%s\"",
-                discoverer.getPath(),
+                discoverer.getUri(),
                 GST_SECOND,
                 width,
                 height,
@@ -140,7 +140,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
             // Create the pipeline expression
             pipeline_cmd = g_strdup_printf(
                 "playbin uri=\"%s\"",
-                discoverer.getPath());
+                discoverer.getUri());
         }
         else
         {
@@ -548,7 +548,7 @@ Discoverer::Discoverer(const Discoverer& rhs)
 {
     Internal::reset(*this);
     
-    mPath       = g_strdup(rhs.getPath());
+    mMediaUri   = g_strdup(rhs.getUri());
     mWidth      = rhs.getWidth();
     mHeight     = rhs.getHeight();
     mFramerate  = rhs.getFramerate();
@@ -584,13 +584,13 @@ bool Discoverer::open(const gchar* path)
         Internal::reset(*this);
         if (Internal::isNullOrEmpty(path)) return success;
 
-        mPath = Internal::processPath(path);
-        if (Internal::isNullOrEmpty(mPath)) return success;
+        mMediaUri = Internal::processPath(path);
+        if (Internal::isNullOrEmpty(mMediaUri)) return success;
 
         if (GstDiscoverer *discoverer = gst_discoverer_new(DISCOVER_TIMEOUT, nullptr))
         {
             BIND_TO_SCOPE(discoverer);
-            if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, mPath, nullptr))
+            if (GstDiscovererInfo *info = gst_discoverer_discover_uri(discoverer, mMediaUri, nullptr))
             {
                 BIND_TO_SCOPE(info);
                 if (gst_discoverer_info_get_result(scoped_info.pointer) == GST_DISCOVERER_OK)
@@ -647,9 +647,9 @@ bool Discoverer::open(const gchar* path)
     return success;
 }
 
-const gchar* Discoverer::getPath() const
+const gchar* Discoverer::getUri() const
 {
-    return Internal::isNullOrEmpty(mPath) ? "" : mPath;
+    return Internal::isNullOrEmpty(mMediaUri) ? "" : mMediaUri;
 }
 
 gint Discoverer::getWidth() const
@@ -757,10 +757,10 @@ void Internal::reset(ngw::Player& player)
 
 void Internal::reset(Discoverer& discoverer)
 {
-    if (!isNullOrEmpty(discoverer.mPath))
+    if (!isNullOrEmpty(discoverer.mMediaUri))
     {
-        g_free(discoverer.mPath);
-        discoverer.mPath = nullptr;
+        g_free(discoverer.mMediaUri);
+        discoverer.mMediaUri = nullptr;
     }
 
     discoverer.mWidth     = 0;

@@ -134,8 +134,8 @@ NGWAPI NgwBool ngw_discoverer_open(Discoverer* discoverer, const char* path) {
     return discoverer->open(path) ? NGW_BOOL_TRUE : NGW_BOOL_FALSE;
 }
 
-NGWAPI const char* ngw_discoverer_get_path(Discoverer* discoverer) {
-    return discoverer->getPath();
+NGWAPI const char* ngw_discoverer_get_uri(Discoverer* discoverer) {
+    return discoverer->getUri();
 }
 
 NGWAPI void ngw_discoverer_free(Discoverer* discoverer) {

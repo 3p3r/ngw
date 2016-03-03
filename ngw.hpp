@@ -157,7 +157,7 @@ public:
     //! reliable to be used with local medias. Returns true on success
     bool            open(const gchar* path);
     //! Returns path to discovered media or empty string ("") on failure
-    const gchar*    getPath() const;
+    const gchar*    getUri() const;
     //! Returns width of the media if it contains video (0 otherwise)
     gint            getWidth() const;
     //! Returns height of the media if it contains video (0 otherwise)
@@ -179,7 +179,7 @@ public:
 
 private:
     friend          class       Internal;
-    gchar*          mPath       = nullptr;  //!< Path to the discovered media
+    gchar*          mMediaUri   = nullptr;  //!< URI to the discovered media
     gint            mWidth      = 0;        //!< Width of the discovered media
     gint            mHeight     = 0;        //!< Height of the discovered media
     gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
