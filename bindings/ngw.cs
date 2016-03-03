@@ -3,59 +3,68 @@ namespace ngw
     using System;
     using System.Runtime.InteropServices;
 
+    /// <summary>
+    /// Wrapper GStreamer player class, provides the same functionality
+    /// of its C++ counterpart. Use of this class is optional. You can
+    /// directly use DllImported methods inside NativeMethods class.
+    /// NOTE: remember before passing any callbacks or pointers inside
+    /// any of the DllImported methods, they need to be Pinned by GC.
+    /// </summary>
     public class Player : IDisposable
     {
-        public enum State
-        {
-            Pending         = 0,
-            Null            = 1,
-            Ready           = 2,
-            Paused          = 3,
-            Playing         = 4
-        }
+        #region Private Members
 
-        public enum BufferType
-        {
-            BYTE_POINTER    = 0,
-            OPENGL_TEXTURE  = 1
-        }
+        IntPtr mNativePlayer                = IntPtr.Zero;
 
-        IntPtr mNativePlayer   = IntPtr.Zero;
+        GCHandle                            mErrorCallbackHandle;
+        GCHandle                            mStateCallbackHandle;
+        GCHandle                            mStEndCallbackHandle;
 
-        GCHandle                mErrorCallbackHandle;
-        GCHandle                mStateCallbackHandle;
-        GCHandle                mStEndCallbackHandle;
+        public Action<NativeTypes.State>    OnStateChanged;
+        public Action<string>               OnErrorReceived;
+        public Action                       OnStreamEnded;
 
-        public Action<string>   OnErrorReceived;
-        public Action<State>    OnStateChanged;
-        public Action           OnStreamEnded;
+        #endregion
 
+        #region Player API
+
+        /// <summary>
+        /// Constructor, taking care of registering GC pinned callbacks
+        /// properly and turning them into C# events instead. Users of
+        /// this class can subscribe to On[event name] events.
+        /// </summary>
         public Player()
         {
             mNativePlayer = NativeMethods.ngw_player_make();
 
-            var error_delegate = new NativeMethods.ErrorDelegate((msg, player)=> {
-                if (OnErrorReceived != null)
-                    OnErrorReceived(msg);
-            });
+            if (mNativePlayer != IntPtr.Zero)
+            {
+                var error_delegate = new NativeTypes.ErrorDelegate((msg, player) =>
+                            {
+                                if (OnErrorReceived != null)
+                                    OnErrorReceived(msg);
+                            });
 
-            var state_delegate = new NativeMethods.StateDelegate((old, player)=> {
-                if (OnStateChanged != null)
-                    OnStateChanged(old);
-            });
+                var state_delegate = new NativeTypes.StateDelegate((old, player) =>
+                {
+                    if (OnStateChanged != null)
+                        OnStateChanged(old);
+                });
 
-            var stend_delegate = new NativeMethods.StreamEndDelegate((player)=> {
-                if (OnStreamEnded != null)
-                    OnStreamEnded();
-            });
+                var stend_delegate = new NativeTypes.StreamEndDelegate((player) =>
+                {
+                    if (OnStreamEnded != null)
+                        OnStreamEnded();
+                });
 
-            mErrorCallbackHandle = GCHandle.Alloc(error_delegate);
-            mStateCallbackHandle = GCHandle.Alloc(state_delegate);
-            mStEndCallbackHandle = GCHandle.Alloc(stend_delegate);
+                mErrorCallbackHandle = GCHandle.Alloc(error_delegate, GCHandleType.Pinned);
+                mStateCallbackHandle = GCHandle.Alloc(state_delegate, GCHandleType.Pinned);
+                mStEndCallbackHandle = GCHandle.Alloc(stend_delegate, GCHandleType.Pinned);
 
-            NativeMethods.ngw_player_set_error_callback(mNativePlayer, error_delegate);
-            NativeMethods.ngw_player_set_state_callback(mNativePlayer, state_delegate);
-            NativeMethods.ngw_player_set_stream_end_callback(mNativePlayer, stend_delegate);
+                NativeMethods.ngw_player_set_error_callback(mNativePlayer, error_delegate);
+                NativeMethods.ngw_player_set_state_callback(mNativePlayer, state_delegate);
+                NativeMethods.ngw_player_set_stream_end_callback(mNativePlayer, stend_delegate);
+            }
         }
 
         public bool open(string path)
@@ -78,7 +87,7 @@ namespace ngw
             return NativeMethods.ngw_player_open_resize_format(mNativePlayer, path, width, height, format);
         }
 
-        public void setFrameBuffer(IntPtr pinned_frame_buffer, BufferType type)
+        public void setFrameBuffer(IntPtr pinned_frame_buffer, NativeTypes.Buffer type)
         {
             NativeMethods.ngw_player_set_frame_buffer(mNativePlayer, pinned_frame_buffer, type);
         }
@@ -93,7 +102,7 @@ namespace ngw
             get { return NativeMethods.ngw_player_get_height(mNativePlayer); }
         }
 
-        public State state
+        public NativeTypes.State state
         {
             get { return NativeMethods.ngw_player_get_state(mNativePlayer); }
             set { NativeMethods.ngw_player_set_state(mNativePlayer, value); }
@@ -141,6 +150,8 @@ namespace ngw
         public void replay() { NativeMethods.ngw_player_replay(mNativePlayer); }
         public void update() { NativeMethods.ngw_player_update(mNativePlayer); }
 
+        #endregion
+
         #region IDisposable Support
         bool mDisposedValue = false;
 
@@ -179,9 +190,20 @@ namespace ngw
         #endregion
     }
 
+    /// <summary>
+    /// Wrapper GStreamer discoverer class, provides the same functionality
+    /// of its C++ counterpart. Use of this class is optional. You can
+    /// directly use DllImported methods inside NativeMethods class.
+    /// </summary>
     public class Discoverer : IDisposable
     {
+        #region Private Members
+
         IntPtr mNativeDiscoverer = IntPtr.Zero;
+
+        #endregion
+
+        #region Discoverer API
 
         public Discoverer()
         {
@@ -243,6 +265,8 @@ namespace ngw
             get { return Marshal.PtrToStringAnsi(NativeMethods.ngw_discoverer_get_uri(mNativeDiscoverer)); }
         }
 
+        #endregion
+
         #region IDisposable Support
         bool mDisposedValue = false;
 
@@ -274,12 +298,40 @@ namespace ngw
         #endregion
     }
 
-    internal static class NativeMethods
+    public static class NativeTypes
     {
+        #region C Callback Types
+
         public delegate void ErrorDelegate([MarshalAs(UnmanagedType.LPStr)] string message, IntPtr player);
-        public delegate void StateDelegate(Player.State state, IntPtr player);
+        public delegate void FrameDelegate(IntPtr buffer, uint size, IntPtr player);
+        public delegate void StateDelegate(State state, IntPtr player);
         public delegate void StreamEndDelegate(IntPtr player);
 
+        #endregion
+
+        #region C Data Types
+
+        public enum State
+        {
+            Pending,
+            Null,
+            Ready,
+            Paused,
+            Playing
+        }
+
+        public enum Buffer
+        {
+            BytePointer,
+            OpenGlTexture,
+            CallbackFunction
+        }
+
+        #endregion
+    }
+
+    internal static class NativeMethods
+    {
         [DllImport("ngw")]
         public static extern void ngw_add_plugin_path([MarshalAs(UnmanagedType.LPStr)] string path);
 
@@ -312,10 +364,10 @@ namespace ngw
         public static extern void ngw_player_close(IntPtr player);
 
         [DllImport("ngw")]
-        public static extern void ngw_player_set_state(IntPtr player, Player.State state);
+        public static extern void ngw_player_set_state(IntPtr player, NativeTypes.State state);
 
         [DllImport("ngw")]
-        public static extern Player.State ngw_player_get_state(IntPtr player);
+        public static extern NativeTypes.State ngw_player_get_state(IntPtr player);
 
         [DllImport("ngw")]
         public static extern void ngw_player_stop(IntPtr player);
@@ -377,16 +429,16 @@ namespace ngw
         public static extern IntPtr ngw_player_get_user_data(IntPtr player);
 
         [DllImport("ngw")]
-        public static extern void ngw_player_set_frame_buffer(IntPtr player, IntPtr buffer, Player.BufferType type);
+        public static extern void ngw_player_set_frame_buffer(IntPtr player, IntPtr buffer, NativeTypes.Buffer type);
 
         [DllImport("ngw")]
-        public static extern void ngw_player_set_error_callback(IntPtr player, ErrorDelegate cb);
+        public static extern void ngw_player_set_error_callback(IntPtr player, NativeTypes.ErrorDelegate cb);
 
         [DllImport("ngw")]
-        public static extern void ngw_player_set_state_callback(IntPtr player, StateDelegate cb);
+        public static extern void ngw_player_set_state_callback(IntPtr player, NativeTypes.StateDelegate cb);
 
         [DllImport("ngw")]
-        public static extern void ngw_player_set_stream_end_callback(IntPtr player, StreamEndDelegate cb);
+        public static extern void ngw_player_set_stream_end_callback(IntPtr player, NativeTypes.StreamEndDelegate cb);
 
         [DllImport("ngw")]
         public static extern double ngw_player_get_rate(IntPtr player);
