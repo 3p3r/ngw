@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ngw;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Runtime.InteropServices;
@@ -7,13 +8,13 @@ public class MediaPlayer : MonoBehaviour
 {
     #region Private Members
 
-    ngw.Player  mPlayer         = new ngw.Player();
-    bool        mOpenGlRenderer = false;
-    byte[]      mDoubleBuffer   = null;
-    Texture2D   mTexture        = null;
-    IntPtr      mFrameBuffer    = IntPtr.Zero;
-    string      mMediaPath      = "";
-    GCHandle    mBufferHandle;
+    private bool        mOpenGlRenderer = false;
+    private Player      mPlayer         = new Player();
+    private IntPtr      mFrameBuffer    = IntPtr.Zero;
+    private byte[]      mDoubleBuffer   = null;
+    private Texture2D   mTexture        = null;
+    private string      mMediaPath      = "";
+    private GCHandle    mBufferHandle;
 
     #endregion
 
@@ -24,7 +25,6 @@ public class MediaPlayer : MonoBehaviour
     public UnityAction          OnStateChanged;
     public UnityAction<string>  OnErrorReceived;
 
-    [Serializable]
     public enum State
     {
         Playing,
@@ -36,11 +36,21 @@ public class MediaPlayer : MonoBehaviour
     {
         get
         {
-            if (mPlayer.state == ngw.Player.State.Playing)
+            if (mPlayer.state == Player.State.Playing)
                 return State.Playing;
-            else if (mPlayer.state == ngw.Player.State.Paused)
+            else if (mPlayer.state == Player.State.Paused)
                 return State.Paused;
             else return State.Stopped;
+        }
+
+        set
+        {
+            if (value == State.Playing)
+                Play();
+            else if (value == State.Paused)
+                Pause();
+            else if (value == State.Stopped)
+                Stop();
         }
     }
 
@@ -107,8 +117,8 @@ public class MediaPlayer : MonoBehaviour
         {
             AllocateFrameBuffer(mPlayer.width, mPlayer.height);
             mPlayer.setFrameBuffer(mFrameBuffer, mOpenGlRenderer
-                ? ngw.Player.BufferType.OPENGL_TEXTURE
-                : ngw.Player.BufferType.BYTE_POINTER);
+                ? Player.BufferType.OPENGL_TEXTURE
+                : Player.BufferType.BYTE_POINTER);
             mMediaPath = media;
 
             if (OnStreamOpened != null)
@@ -145,11 +155,12 @@ public class MediaPlayer : MonoBehaviour
         if (!mOpenGlRenderer && mBufferHandle.IsAllocated) {
             mBufferHandle.Free();
         }
-        else if (mOpenGlRenderer) {
+
+        if (mTexture != null) {
             Destroy(mTexture);
         }
 
-        mPlayer.setFrameBuffer(IntPtr.Zero, ngw.Player.BufferType.BYTE_POINTER);
+        mPlayer.setFrameBuffer(IntPtr.Zero, Player.BufferType.BYTE_POINTER);
     }
 
     void Awake()
@@ -173,7 +184,7 @@ public class MediaPlayer : MonoBehaviour
     {
         mPlayer.update();
 
-        if (!mOpenGlRenderer && mTexture)
+        if (!mOpenGlRenderer && mTexture != null)
         {
             mTexture.LoadRawTextureData(mDoubleBuffer);
             mTexture.Apply();
