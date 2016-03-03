@@ -238,6 +238,11 @@ namespace ngw
             get { return NativeMethods.ngw_discoverer_get_bit_rate(mNativeDiscoverer); }
         }
 
+        public string uri
+        {
+            get { return Marshal.PtrToStringAnsi(NativeMethods.ngw_discoverer_get_uri(mNativeDiscoverer)); }
+        }
+
         #region IDisposable Support
         bool mDisposedValue = false;
 
@@ -271,15 +276,15 @@ namespace ngw
 
     internal static class NativeMethods
     {
-        public delegate void ErrorDelegate(string message, IntPtr player);
+        public delegate void ErrorDelegate([MarshalAs(UnmanagedType.LPStr)] string message, IntPtr player);
         public delegate void StateDelegate(Player.State state, IntPtr player);
         public delegate void StreamEndDelegate(IntPtr player);
 
         [DllImport("ngw")]
-        public static extern void ngw_add_plugin_path(string path);
+        public static extern void ngw_add_plugin_path([MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport("ngw")]
-        public static extern void ngw_add_binary_path(string path);
+        public static extern void ngw_add_binary_path([MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport("ngw")]
         public static extern IntPtr ngw_player_make();
@@ -289,19 +294,19 @@ namespace ngw
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ngw_player_open_resize_format(IntPtr player, string path, int width, int height, string fmt);
+        public static extern bool ngw_player_open_resize_format(IntPtr player, [MarshalAs(UnmanagedType.LPStr)] string path, int width, int height, [MarshalAs(UnmanagedType.LPStr)] string fmt);
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ngw_player_open_resize(IntPtr player, string path, int width, int height);
+        public static extern bool ngw_player_open_resize(IntPtr player, [MarshalAs(UnmanagedType.LPStr)] string path, int width, int height);
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ngw_player_open_format(IntPtr player, string path, string fmt);
+        public static extern bool ngw_player_open_format(IntPtr player, [MarshalAs(UnmanagedType.LPStr)] string path, [MarshalAs(UnmanagedType.LPStr)] string fmt);
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ngw_player_open(IntPtr player, string path);
+        public static extern bool ngw_player_open(IntPtr player, [MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport("ngw")]
         public static extern void ngw_player_close(IntPtr player);
@@ -391,7 +396,7 @@ namespace ngw
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ngw_discoverer_open(IntPtr discoverer, string path);
+        public static extern bool ngw_discoverer_open(IntPtr discoverer, [MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport("ngw")]
         public static extern int ngw_discoverer_get_width(IntPtr discoverer);
@@ -425,6 +430,9 @@ namespace ngw
 
         [DllImport("ngw")]
         public static extern void ngw_discoverer_free(IntPtr discoverer);
+
+        [DllImport("ngw")]
+        public static extern IntPtr ngw_discoverer_get_uri(IntPtr discoverer);
 
     } // class NativeMethods
 
