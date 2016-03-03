@@ -71,7 +71,7 @@ void _Player::onFrame(guchar* buf, gsize size) const
             0x80E1, // GL_BGRA
             GL_UNSIGNED_BYTE,
             buf);
-        ::glBindTexture(GL_TEXTURE_2D, NULL);
+        ::glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
 

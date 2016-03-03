@@ -15,6 +15,15 @@ struct BindToScope
     T*& pointer;
 };
 
+template<> BindToScope<gchar>::~BindToScope()                   { g_free(pointer); pointer = nullptr; }
+template<> BindToScope<GList>::~BindToScope()                   { gst_discoverer_stream_info_list_free(pointer); pointer = nullptr; }
+template<> BindToScope<GError>::~BindToScope()                  { g_error_free(pointer); pointer = nullptr; }
+template<> BindToScope<GstMessage>::~BindToScope()              { gst_message_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstAppSink>::~BindToScope()              { g_object_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscoverer>::~BindToScope()           { g_object_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscovererInfo>::~BindToScope()       { gst_discoverer_info_unref(pointer); pointer = nullptr; }
+template<> BindToScope<GstDiscovererStreamInfo>::~BindToScope() { gst_discoverer_stream_info_unref(pointer); pointer = nullptr; }
+
 template< class T > struct no_ptr        { typedef T type; };
 template< class T > struct no_ptr<T*>    { typedef T type; };
 #define BIND_TO_SCOPE(var) BindToScope<\
@@ -700,15 +709,6 @@ guint Discoverer::getBitRate() const
 //////////////////////////////////////////////////////////////////////////
 // Internal implementation
 //////////////////////////////////////////////////////////////////////////
-
-template<> BindToScope<gchar>::~BindToScope()                   { g_free(pointer); pointer = nullptr; }
-template<> BindToScope<GList>::~BindToScope()                   { gst_discoverer_stream_info_list_free(pointer); pointer = nullptr; }
-template<> BindToScope<GError>::~BindToScope()                  { g_error_free(pointer); pointer = nullptr; }
-template<> BindToScope<GstMessage>::~BindToScope()              { gst_message_unref(pointer); pointer = nullptr; }
-template<> BindToScope<GstAppSink>::~BindToScope()              { g_object_unref(pointer); pointer = nullptr; }
-template<> BindToScope<GstDiscoverer>::~BindToScope()           { g_object_unref(pointer); pointer = nullptr; }
-template<> BindToScope<GstDiscovererInfo>::~BindToScope()       { gst_discoverer_info_unref(pointer); pointer = nullptr; }
-template<> BindToScope<GstDiscovererStreamInfo>::~BindToScope() { gst_discoverer_stream_info_unref(pointer); pointer = nullptr; }
 
 bool Internal::isNullOrEmpty(const gchar* const str)
 {

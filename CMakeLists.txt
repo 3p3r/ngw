@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED( VERSION 3.0 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8 FATAL_ERROR )
 
 # //////////////////////////////////////////////////////////////////////
 # Project-wide settings:
@@ -18,6 +18,9 @@ SET( CMAKE_MODULE_PATH
 
 #turn on using solution folders
 SET_PROPERTY( GLOBAL PROPERTY USE_FOLDERS ON)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+ENDIF()
 
 INCLUDE ( FindGstreamer REQUIRED )
 INCLUDE_DIRECTORIES( ${NGW_ROOT} )
