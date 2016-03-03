@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class Example : MonoBehaviour
 {
-    public MediaPlayer  MediaPlayer;
+    public GstreamerPlayer  MediaPlayer;
     public RawImage     RawImage;
 	
 	void Start ()
