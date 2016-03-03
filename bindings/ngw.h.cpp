@@ -1,10 +1,14 @@
 #include "ngw.h"
 #include "ngw.hpp"
 
-#ifdef _WIN32
-#   include <windows.h>
-#endif // _WIN32
-#include <gst/gl/gstglapi.h>
+#ifdef __APPLE__
+#   include <OpenGL/gl.h>
+#else
+#   ifdef _WIN32
+#       include <windows.h>
+#   endif
+#   include <GL/gl.h>
+#endif
 
 struct _Player final : public ngw::Player {
 public:
