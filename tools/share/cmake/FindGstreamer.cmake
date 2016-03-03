@@ -93,7 +93,7 @@ MACRO(TARGET_ADD_GSTREAMER_MODULES target_name)
             LIST(GET comps 1 comp)
             SET(_library "gst${comp}-1.0")
         ELSE()
-            SET(_library "${name}")
+            SET(_library "${arg}")
         ENDIF()
         
         STRING(REPLACE "-" "_" _component_prefix ${arg})
@@ -106,7 +106,7 @@ MACRO(TARGET_ADD_GSTREAMER_MODULES target_name)
         FIND_LIBRARY(${_component_prefix}_LIBRARIES
             NAMES ${_library}
             HINTS ${PC_${_component_prefix}_LIBRARY_DIRS} ${PC_${_component_prefix}_LIBDIR})
-        TARGET_LINK_LIBRARIES(${target_name} ${_component_prefix}_LIBRARIES)
+        TARGET_LINK_LIBRARIES(${target_name} ${${_component_prefix}_LIBRARIES})
     ENDFOREACH()
 ENDMACRO()
 
