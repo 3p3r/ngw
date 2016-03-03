@@ -163,7 +163,7 @@ public:
     //! Returns height of the media if it contains video (0 otherwise)
     gint            getHeight() const;
     //! Returns frame rate of the media if it contains video (0 otherwise)
-    gfloat          getFramerate() const;
+    gfloat          getFrameRate() const;
     //! Answers true if media contains video
     bool            getHasVideo() const;
     //! Answers true if media contains audio
@@ -182,7 +182,7 @@ private:
     gchar*          mMediaUri   = nullptr;  //!< URI to the discovered media
     gint            mWidth      = 0;        //!< Width of the discovered media
     gint            mHeight     = 0;        //!< Height of the discovered media
-    gfloat          mFramerate  = 0;        //!< Frame rate of the discovered media
+    gfloat          mFrameRate  = 0;        //!< Frame rate of the discovered media
     gdouble         mDuration   = 0;        //!< Duration of the discovered media
     guint           mSampleRate = 0;        //!< Sample rate of the discovered media (audio)
     guint           mBitRate    = 0;        //!< Bit rate of the discovered media in bits/second (audio)

@@ -560,7 +560,7 @@ Discoverer::Discoverer(const Discoverer& rhs)
     mMediaUri   = g_strdup(rhs.getUri());
     mWidth      = rhs.getWidth();
     mHeight     = rhs.getHeight();
-    mFramerate  = rhs.getFramerate();
+    mFrameRate  = rhs.getFrameRate();
     mHasAudio   = rhs.getHasAudio();
     mHasVideo   = rhs.getHasVideo();
     mSeekable   = rhs.getSeekable();
@@ -617,7 +617,7 @@ bool Discoverer::open(const gchar* path)
                             {
                                 mWidth      = gst_discoverer_video_info_get_width(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
                                 mHeight     = gst_discoverer_video_info_get_height(GST_DISCOVERER_VIDEO_INFO(curr_sinfo));
-                                mFramerate  = gst_discoverer_video_info_get_framerate_num(GST_DISCOVERER_VIDEO_INFO(curr_sinfo))
+                                mFrameRate  = gst_discoverer_video_info_get_framerate_num(GST_DISCOVERER_VIDEO_INFO(curr_sinfo))
                                     / float(gst_discoverer_video_info_get_framerate_denom(GST_DISCOVERER_VIDEO_INFO(curr_sinfo)));
                             }
                         }
@@ -671,9 +671,9 @@ gint Discoverer::getHeight() const
     return mHeight;
 }
 
-gfloat Discoverer::getFramerate() const
+gfloat Discoverer::getFrameRate() const
 {
-    return mFramerate;
+    return mFrameRate;
 }
 
 bool Discoverer::getHasVideo() const
@@ -765,7 +765,7 @@ void Internal::reset(Discoverer& discoverer)
 
     discoverer.mWidth     = 0;
     discoverer.mHeight    = 0;
-    discoverer.mFramerate = 0;
+    discoverer.mFrameRate = 0;
     discoverer.mHasAudio  = false;
     discoverer.mHasVideo  = false;
     discoverer.mSeekable  = false;

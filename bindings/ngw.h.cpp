@@ -154,8 +154,8 @@ NGWAPI int ngw_discoverer_get_height(Discoverer* discoverer) {
     return discoverer->getHeight();
 }
 
-NGWAPI float ngw_discoverer_get_framerate(Discoverer* discoverer) {
-    return discoverer->getFramerate();
+NGWAPI float ngw_discoverer_get_frame_rate(Discoverer* discoverer) {
+    return discoverer->getFrameRate();
 }
 
 NGWAPI NgwBool ngw_discoverer_get_has_video(Discoverer* discoverer) {

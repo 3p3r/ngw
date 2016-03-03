@@ -242,7 +242,7 @@ namespace ngw
 
         public float frameRate
         {
-            get { return NativeMethods.ngw_discoverer_get_framerate(mNativeDiscoverer); }
+            get { return NativeMethods.ngw_discoverer_get_frame_rate(mNativeDiscoverer); }
         }
 
         public double duration
@@ -457,7 +457,7 @@ namespace ngw
         public static extern int ngw_discoverer_get_height(IntPtr discoverer);
 
         [DllImport("ngw")]
-        public static extern float ngw_discoverer_get_framerate(IntPtr discoverer);
+        public static extern float ngw_discoverer_get_frame_rate(IntPtr discoverer);
 
         [DllImport("ngw")]
         [return: MarshalAs(UnmanagedType.Bool)]

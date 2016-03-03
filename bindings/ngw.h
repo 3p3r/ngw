@@ -92,7 +92,7 @@ NGWAPI NgwBool     ngw_discoverer_open(Discoverer* discoverer, const char* path)
 NGWAPI const char* ngw_discoverer_get_uri(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_width(Discoverer* discoverer);
 NGWAPI int         ngw_discoverer_get_height(Discoverer* discoverer);
-NGWAPI float       ngw_discoverer_get_framerate(Discoverer* discoverer);
+NGWAPI float       ngw_discoverer_get_frame_rate(Discoverer* discoverer);
 NGWAPI NgwBool     ngw_discoverer_get_has_video(Discoverer* discoverer);
 NGWAPI NgwBool     ngw_discoverer_get_has_audio(Discoverer* discoverer);
 NGWAPI NgwBool     ngw_discoverer_get_seekable(Discoverer* discoverer);
