@@ -3,8 +3,10 @@ using UnityEngine.UI;
 
 public class Example : MonoBehaviour
 {
+    public InputField       InputField;
+    public Slider           Slider;
     public GstreamerPlayer  MediaPlayer;
-    public RawImage     RawImage;
+    public RawImage         RawImage;
 	
 	void Start ()
     {
@@ -12,6 +14,10 @@ public class Example : MonoBehaviour
             Debug.LogError("Media Player reference is empty");
         else if (RawImage == null)
             Debug.LogError("Raw Image reference is empty");
+        else if (InputField == null)
+            Debug.LogError("Input Field reference is empty");
+        else if (Slider == null)
+            Debug.LogError("Slider reference is empty");
         else
         {
             MediaPlayer.OnStreamOpened += () =>
@@ -53,4 +59,21 @@ public class Example : MonoBehaviour
             };
         }
 	}
+
+    public void OpenInputField()
+    {
+        if (InputField.text != MediaPlayer.Path)
+        {
+            if (System.Uri.IsWellFormedUriString(InputField.text, System.UriKind.Absolute) ||
+                System.IO.File.Exists(InputField.text))
+            {
+                MediaPlayer.Open(InputField.text);
+            }
+        }
+    }
+
+    public void AssignVolume()
+    {
+        MediaPlayer.Volume = Slider.value;
+    }
 }
