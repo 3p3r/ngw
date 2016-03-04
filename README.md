@@ -1,4 +1,5 @@
-#Nano GStreamer Wrapper
+Nano GStreamer Wrapper
+======================
 
 Cross-platform high performance embed-able media playback solution using GStreamer.
 
@@ -69,7 +70,7 @@ cmake --build . --config Release
 
 ##API documentation
 
-`to do`
+Documentation is provided in Doxygen format. You can generate the documentation with provided `tools/doxygen/Doxyfile` config file and it outputs to `docs/html`. You may start browsing the documentation by opening up `docs/html/index.html` in a web browser.
 
 ##License
 

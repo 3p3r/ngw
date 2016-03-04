@@ -1,3 +1,4 @@
+/*! @file */
 #pragma once
 
 #include <gst/gst.h>
@@ -15,7 +16,6 @@ namespace ngw
 {
 
 /*!
- * @fn      addPluginPath
  * @brief   Adds a path to GStreamer's plug-in directories
  * @note    Uses GStreamer API, not modifying GST_PLUGIN_PATH
  * @param   path directory to be added to search directories
@@ -23,7 +23,6 @@ namespace ngw
 void addPluginPath(const gchar* path);
 
 /*!
- * @fn      addBinaryPath
  * @brief   Appends path to the end of PATH variable
  * @param   path directory to be appended to PATH
  */
@@ -36,7 +35,7 @@ void addBinaryPath(const gchar* path);
  *          the user of the library.
  * @note    API of this class is not MT safe. Designed to be exclusively
  *          used in one thread and embedded in other game engines.
- * @usage   To obtain video frames, you need to subclass and override
+ * @details To obtain video frames, you need to subclass and override
  *          onFrame(...) method. Same goes for receiving events. To get
  *          event callbacks, on[name of function] should be overridden.
  */
@@ -55,10 +54,6 @@ public:
     bool            open(const gchar *path);
     //! closes the current media file and its associated resources (no op if no media)
     void            close();
-    //! sets state of the player (GST_STATE_PAUSED, etc.)
-    void            setState(GstState state);
-    //! answers the current state of the player (GST_STATE_PAUSED, etc.)
-    GstState        getState() const;
     //! stops playback (setting time to 0)
     void            stop();
     //! resumes playback from its current time.
@@ -69,14 +64,17 @@ public:
     void            pause();
     //! update loop logic, MUST be called often in your engine's update loop
     void            update();
-    //! answers duration of the media file. Valid after call to open(...)
+    //! answers duration of the media file. Valid after call to open()
     gdouble         getDuration() const;
+    //! sets state of the player (GST_STATE_PAUSED, etc.)
+    void            setState(GstState state);
+    //! answers the current state of the player (GST_STATE_PAUSED, etc.)
+    GstState        getState() const;
     //! sets if the player should loop playback in the end (true) or not (false)
     void            setLoop(bool on);
     //! answers true if the player is currently looping playback
     bool            getLoop() const;
-    //! seeks the media to a given time. NOTE: this is an async call, seek might
-    //! not happen immediately. Cache occurs if an attempt is already in progress
+    //! seeks the media to a given time. this is an @b async call
     void            setTime(gdouble time);
     //! answers the current position of the player between [ 0. , getDuration() ]
     gdouble         getTime() const;
@@ -88,12 +86,11 @@ public:
     void            setMute(bool on);
     //! answers true if the player is muted
     bool            getMute() const;
-    //! answers width of the video, 0 if audio is being played. Valid after open(...)
+    //! answers width of the video, 0 if audio is being played. Valid after open()
     gint            getWidth() const;
-    //! answers height of the video, 0 if audio is being played. Valid after open(...)
+    //! answers height of the video, 0 if audio is being played. Valid after open()
     gint            getHeight() const;
-    //! sets playback rate (negative rate means reverse playback). NOTE: reverse playback
-    //! might not be supported by all plug-ins. Do not rely on this feature heavily
+    //! sets playback rate (negative rate means reverse playback). @b experimental feature
     void            setRate(gdouble rate);
     //! gets the current rate of the playback (1. is normal speed forward playback)
     gdouble         getRate() const;
@@ -108,7 +105,7 @@ protected:
     //! Called on end of the stream. Playback is finished at this point
     virtual void    onStreamEnd() const {};
 
-    //! @cond inside onFrame API
+    //! @cond
     //! These APIs are present in case user of ngw needs to hold on to a frame beyond scope of the onFrame(...)
     //! API. for example the ABI stable target uses them to extract a buffer safely via gst_buffer_extract.
     //! NOTE: These APIs are ONLY valid inside onFrame(...) API!
@@ -118,7 +115,9 @@ protected:
     //! @endcond
 
 private:
+    //! @cond
     friend          class Internal;
+	//! @endcond
     GstState        mState;                 //!< Current state of the player (playing, paused, etc.)
     GstMapInfo      mCurrentMapInfo;        //!< Mapped Buffer info, ONLY valid inside onFrame(...)
     GstSample       *mCurrentSample;        //!< Mapped Sample, ONLY valid inside onFrame(...)
@@ -145,16 +144,18 @@ private:
  * @brief   Used to obtain meta data information about a media file without
  *          opening / playing it. Player class uses this internally to tell
  *          if a media file is audio-only or not and get its media duration
+ * @note    does not work very well for Internet based URLs. Some URLs are
+ *          not discoverable but some are. More reliable to be used with
+ *          local media files (audio / video).
  */
 class Discoverer
 {
 public:
     Discoverer();
-    Discoverer(const Discoverer&);
     virtual         ~Discoverer();
-    //! Attempts to open a media for discovery. NOTE: does not work very well for
-    //! Internet based URLs. Some URLs are not discoverable but some are. More
-    //! reliable to be used with local medias. Returns true on success
+    //! Copy constructor, properly copies URI string pointer.
+    Discoverer(const Discoverer&);
+    //! Attempts to open a media for discovery.
     bool            open(const gchar* path);
     //! Returns path to discovered media or empty string ("") on failure
     const gchar*    getUri() const;
@@ -178,7 +179,9 @@ public:
     guint           getBitRate() const;
 
 private:
-    friend          class       Internal;
+    //! @cond
+    friend          class Internal;
+	//! @endcond
     gchar*          mMediaUri   = nullptr;  //!< URI to the discovered media
     gint            mWidth      = 0;        //!< Width of the discovered media
     gint            mHeight     = 0;        //!< Height of the discovered media
