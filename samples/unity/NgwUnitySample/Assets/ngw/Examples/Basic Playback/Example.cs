@@ -4,7 +4,8 @@ using UnityEngine.UI;
 public class Example : MonoBehaviour
 {
     public InputField       InputField;
-    public Slider           Slider;
+    public Slider           TimeSlider;
+    public Slider           VolumeSlider;
     public GstreamerPlayer  MediaPlayer;
     public RawImage         RawImage;
 	
@@ -16,13 +17,16 @@ public class Example : MonoBehaviour
             Debug.LogError("Raw Image reference is empty");
         else if (InputField == null)
             Debug.LogError("Input Field reference is empty");
-        else if (Slider == null)
-            Debug.LogError("Slider reference is empty");
+        else if (VolumeSlider == null)
+            Debug.LogError("Volume Slider reference is empty");
+        else if (TimeSlider == null)
+            Debug.LogError("Time Slider reference is empty");
         else
         {
             MediaPlayer.OnStreamOpened += () =>
             {
                 RawImage.texture = MediaPlayer.Texture;
+                TimeSlider.maxValue = (float)MediaPlayer.Duration;
 
                 using (var discoverer = new ngw.Discoverer())
                 {
@@ -46,16 +50,24 @@ public class Example : MonoBehaviour
             MediaPlayer.OnStreamEnded += () =>
             {
                 Debug.Log("MediaPlayer ended its playback");
+
+                TimeSlider.value = 0.0f;
             };
 
             MediaPlayer.OnStateChanged += () =>
             {
                 Debug.LogFormat("MediaPlayer's state changed to: {0}", MediaPlayer.Status.ToString());
+
+                if (MediaPlayer.Status == GstreamerPlayer.State.Stopped)
+                    TimeSlider.value = 0.0f;
             };
 
             MediaPlayer.OnErrorReceived += (msg) =>
             {
                 Debug.LogErrorFormat("MediaPlayer encountered and error: {0}", msg);
+
+                TimeSlider.value = 0.0f;
+                MediaPlayer.Close();
             };
         }
 	}
@@ -74,6 +86,21 @@ public class Example : MonoBehaviour
 
     public void AssignVolume()
     {
-        MediaPlayer.Volume = Slider.value;
+        MediaPlayer.Volume = VolumeSlider.value;
+    }
+
+    public void AssignTime()
+    {
+        if (Input.GetMouseButton(0))
+            MediaPlayer.Time = TimeSlider.value;
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButton(0))
+            return;
+
+        if (MediaPlayer.Status == GstreamerPlayer.State.Playing)
+            TimeSlider.value = (float)MediaPlayer.Time;
     }
 }
