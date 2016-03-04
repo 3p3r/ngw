@@ -4,6 +4,38 @@ namespace ngw
     using System.Runtime.InteropServices;
 
     /// <summary>
+    /// Free functions exposed through the C interface and not belonging
+    /// to any particular class. Equivalent to C++ ngw namespace globals
+    /// </summary>
+    public class Library
+    {
+        /// <summary>
+        /// Returns version string of ngw. For documentation on its
+        /// format please consult the C++ header.
+        /// </summary>
+        public static string getVersion()
+        {
+            return Marshal.PtrToStringAnsi(NativeMethods.ngw_get_version());
+        }
+
+        /// <summary>
+        /// Adds "path" to GStreamer's plug-in search directories
+        /// </summary>
+        public static void addPluginPath(string path)
+        {
+            NativeMethods.ngw_add_plugin_path(path);
+        }
+
+        /// <summary>
+        /// Adds "path" to the end of running process' PATH variable
+        /// </summary>
+        public static void addBinaryPath(string path)
+        {
+            NativeMethods.ngw_add_binary_path(path);
+        }
+    }
+
+    /// <summary>
     /// Wrapper GStreamer player class, provides the same functionality
     /// of its C++ counterpart. Use of this class is optional. You can
     /// directly use DllImported methods inside NativeMethods class.
@@ -485,6 +517,9 @@ namespace ngw
 
         [DllImport("ngw")]
         public static extern IntPtr ngw_discoverer_get_uri(IntPtr discoverer);
+
+        [DllImport("ngw")]
+        public static extern IntPtr ngw_get_version();
 
     } // class NativeMethods
 
