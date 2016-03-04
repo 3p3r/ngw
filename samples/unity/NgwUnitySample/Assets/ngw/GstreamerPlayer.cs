@@ -280,6 +280,7 @@ public class GstreamerPlayer : MonoBehaviour
             Destroy(mTexture);
         }
 
+        mTexture = null;
         mDoubleBuffer = null;
         mFrameBuffer = IntPtr.Zero;
         mPlayer.setFrameBuffer(IntPtr.Zero, ngw.NativeTypes.Buffer.BytePointer);
@@ -319,7 +320,7 @@ public class GstreamerPlayer : MonoBehaviour
     {
         mPlayer.update();
 
-        if (!mOpenGl && mTexture != null)
+        if (!mOpenGl && mTexture != null && mDoubleBuffer != null)
         {
             mTexture.LoadRawTextureData(mDoubleBuffer);
             mTexture.Apply();
