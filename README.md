@@ -36,6 +36,7 @@ sudo apt-get install gstreamer1.0*
 Installing GStreamer on Windows is extremely simple.
 
 1. Grab Windows [run time binary](https://gstreamer.freedesktop.org/data/pkg/windows/) installer package from GStreamer project's website *(1.2+)* and install it.\*\*
+  * **Make sure you perform a "Complete" installation and not "Typical". You may do so by clicking on "Complete" option in "Choose Setup Type" screen.** If you wish to change the path as well you may click on "Custom", change the path and select *Entire feature will be installed on local hard drive* under *GStreamer 1.0*'s node.
 2. Depending on your architecture:
   * For 64 bit systems:
     1. Append `%GSTREAMER_1_0_ROOT_X86_64%\bin` to **user's** PATH variable (create one if does not exist).
