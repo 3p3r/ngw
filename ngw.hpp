@@ -16,6 +16,20 @@ namespace ngw
 {
 
 /*!
+ * @brief   returns a null terminated string indicating version of NGW
+ *          MIXED with the GStreamer version it is linked against.
+ * @note    Format is: X.Y.Z_A.B.C.D
+ *          Where:  X is NGW's major version
+ *                  Y is NGW's minor version
+ *                  Z is NGW's patch version
+ *                  A is GStreamer's major version
+ *                  B is GStreamer's minor version
+ *                  C is GStreamer's micro version
+ *                  D is GStreamer's nano version
+ */
+const gchar* getVersion();
+
+/*!
  * @brief   Adds a path to GStreamer's plug-in directories
  * @note    Uses GStreamer API, not modifying GST_PLUGIN_PATH
  * @param   path directory to be added to search directories

@@ -114,6 +114,10 @@ struct _Discoverer  final : public ngw::Discoverer { };
 extern "C" {
 #endif // __cplusplus
 
+NGWAPI const char* ngw_get_version(void) {
+    return ngw::getVersion();
+}
+
 NGWAPI void ngw_add_plugin_path(const char* path) {
     ngw::addPluginPath(path);
 }

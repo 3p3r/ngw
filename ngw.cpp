@@ -60,6 +60,18 @@ Player::~Player()
     close();
 }
 
+const gchar* getVersion()
+{
+#   define STRINGIFO(v) #v
+#   define STRINGIFY(v) STRINGIFO v
+
+    return "1.0.0" "_"
+        STRINGIFY(GST_VERSION_MAJOR) "."
+        STRINGIFY(GST_VERSION_MINOR) "."
+        STRINGIFY(GST_VERSION_MICRO) "."
+        STRINGIFY(GST_VERSION_NANO);
+}
+
 void addPluginPath(const gchar* path)
 {
     if (Internal::isNullOrEmpty(path))

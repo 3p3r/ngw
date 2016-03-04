@@ -60,6 +60,7 @@ typedef void       (*NGW_STATE_CALLBACK_TYPE)(int, const Player*);
 typedef void       (*NGW_STREAM_END_CALLBACK_TYPE)(const Player*);
 
 //! @cond NGW C api. For documentation please consult ngw.hpp
+NGWAPI const char* ngw_get_version(void);
 NGWAPI void        ngw_add_plugin_path(const char* path);
 NGWAPI void        ngw_add_binary_path(const char* path);
 
