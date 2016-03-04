@@ -117,7 +117,7 @@ protected:
 private:
     //! @cond
     friend          class Internal;
-	//! @endcond
+    //! @endcond
     GstState        mState;                 //!< Current state of the player (playing, paused, etc.)
     GstMapInfo      mCurrentMapInfo;        //!< Mapped Buffer info, ONLY valid inside onFrame(...)
     GstSample       *mCurrentSample;        //!< Mapped Sample, ONLY valid inside onFrame(...)
@@ -181,7 +181,7 @@ public:
 private:
     //! @cond
     friend          class Internal;
-	//! @endcond
+    //! @endcond
     gchar*          mMediaUri   = nullptr;  //!< URI to the discovered media
     gint            mWidth      = 0;        //!< Width of the discovered media
     gint            mHeight     = 0;        //!< Height of the discovered media

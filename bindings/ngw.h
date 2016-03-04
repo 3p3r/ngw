@@ -1,5 +1,14 @@
+/*!
+ * @file    ngw.h
+ * @brief   C bindings of ngw.hpp
+ * @details Provides an ABI stable interface for this library. Naming convention of this file is as
+ *          follows: [namespace]_[class name]_[method name]([args]).
+ * @note    Only ABI stable extension APIs are documented here. for full API documentation on the
+ *          rest of the functions/methods, take a look at ngw.hpp
+ */
 #pragma once
 
+//! @cond
 // Compiler specific shared library symbol visibility
 #if defined(_WIN32) && defined(NGW_BUILD_DLL)
  /* We are building NGW as a DLL */
@@ -19,6 +28,7 @@
 // following represent gboolean literals.
 #define NGW_BOOL_FALSE 0
 #define NGW_BOOL_TRUE  1
+//! @endcond
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,14 +89,7 @@ NGWAPI int         ngw_player_get_width(Player* player);
 NGWAPI int         ngw_player_get_height(Player* player);
 NGWAPI void        ngw_player_set_rate(Player* player, double rate);
 NGWAPI double      ngw_player_get_rate(Player* player);
-NGWAPI void        ngw_player_set_user_data(Player* player, void *data);
-NGWAPI void*       ngw_player_get_user_data(Player* player);
-NGWAPI void        ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type);
-NGWAPI void        ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb);
-NGWAPI void        ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb);
-NGWAPI void        ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb);
 NGWAPI void        ngw_player_free(Player* player);
-
 NGWAPI Discoverer* ngw_discoverer_make(void);
 NGWAPI NgwBool     ngw_discoverer_open(Discoverer* discoverer, const char* path);
 NGWAPI const char* ngw_discoverer_get_uri(Discoverer* discoverer);
@@ -101,6 +104,19 @@ NGWAPI unsigned    ngw_discoverer_get_sample_rate(Discoverer* discoverer);
 NGWAPI unsigned    ngw_discoverer_get_bit_rate(Discoverer* discoverer);
 NGWAPI void        ngw_discoverer_free(Discoverer* discoverer);
 //! @endcond
+
+//! sets a user data attached to a Player object. Useful to pass state into callback functions
+NGWAPI void        ngw_player_set_user_data(Player* player, void *data);
+//! gets a user data attached to a Player object. Useful to obtain a state from callback functions
+NGWAPI void*       ngw_player_get_user_data(Player* player);
+//! sets a frame buffer that receives video frames. "buffer" Could be of any of NgwBuffer types
+NGWAPI void        ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type);
+//! sets a callback function to be called on errors (propagated both by GStreamer and NGW)
+NGWAPI void        ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb);
+//! sets a callback function to be called on stream state change. Equivalent to onState() virtual
+NGWAPI void        ngw_player_set_state_callback(Player* player, NGW_STATE_CALLBACK_TYPE cb);
+//! sets a callback function to be called on stream end. Equivalent to onStreamEnd() virtual
+NGWAPI void        ngw_player_set_stream_end_callback(Player* player, NGW_STREAM_END_CALLBACK_TYPE cb);
 
 #ifdef __cplusplus
 } // extern "C"
