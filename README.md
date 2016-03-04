@@ -37,10 +37,10 @@ Installing GStreamer on Windows is extremely simple.
 1. Grab Windows [run time binary](https://gstreamer.freedesktop.org/data/pkg/windows/) installer package from GStreamer project's website *(1.2+)* and install it.\*\*
 2. Depending on your architecture:
   * For 64 bit systems:
-    1. Append `%GSTREAMER_1_0_ROOT_X86_64%\bin` to PATH.
+    1. Append `%GSTREAMER_1_0_ROOT_X86_64%\bin` to **user's** PATH variable (create one if does not exist).
     2. Define `GST_PLUGIN_PATH` to `%GSTREAMER_1_0_ROOT_X86_64%\lib\gstreamer-1.0`
   * For 32 bit systems:
-    1. Append `%GSTREAMER_1_0_ROOT_X86%\bin` to PATH.
+    1. Append `%GSTREAMER_1_0_ROOT_X86%\bin` to **user's** PATH variable (create one if does not exist).
     2. Define `GST_PLUGIN_PATH` to `%GSTREAMER_1_0_ROOT_X86%\lib\gstreamer-1.0`
 3. Restart your machine (so environment variables properly populate the system).
 
