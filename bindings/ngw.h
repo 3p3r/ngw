@@ -112,6 +112,8 @@ NGWAPI void        ngw_player_set_user_data(Player* player, void *data);
 NGWAPI void*       ngw_player_get_user_data(Player* player);
 //! sets a frame buffer that receives video frames. "buffer" Could be of any of NgwBuffer types
 NGWAPI void        ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type);
+//! sets pointer to a boolean flag which is set to true whenever a frame is ready. Always false if buffer is OpenGL texture
+NGWAPI void        ngw_player_set_frame_dirty_flag(Player* player, NgwBool *flag);
 //! sets a callback function to be called on errors (propagated both by GStreamer and NGW)
 NGWAPI void        ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb);
 //! sets a callback function to be called on stream state change. Equivalent to onState() virtual

@@ -15,6 +15,7 @@ public:
     void        setUserData(gpointer data);
     gpointer    getUserData() const;
     void        setFrameBuffer(void* buffer, NgwBuffer type);
+    void        setFrameDirtyFlag(gboolean *flag);
     void        setErrorCallback(NGW_ERROR_CALLBACK_TYPE cb);
     void        setStateCallback(NGW_STATE_CALLBACK_TYPE cb);
     void        setStreamEndCallback(NGW_STREAM_END_CALLBACK_TYPE cb);
@@ -26,6 +27,7 @@ protected:
     void        onStreamEnd() const override;
 
 private:
+    gboolean    *mDirtyFlag = nullptr;
     gpointer    mBuffer     = nullptr;
     gpointer    mUserData   = nullptr;
     NgwBuffer   mBufferType = NGW_BUFFER_BYTE_POINTER;
@@ -54,14 +56,25 @@ void _Player::setFrameBuffer(void* buffer, NgwBuffer type)
 
 void _Player::onFrame(guchar* buf, gsize size) const
 {
-    if (mBuffer == nullptr) return;
-    if (mBufferType == NGW_BUFFER_BYTE_POINTER) {
+    if (mBuffer == nullptr)
+        return;
+
+    if (mBufferType == NGW_BUFFER_BYTE_POINTER)
+    {
         gst_buffer_extract(getBuffer(), 0, mBuffer, size);
+
+        if (mDirtyFlag != nullptr)
+            *mDirtyFlag = NGW_BOOL_TRUE;
     }
-    else if (mBufferType == NGW_BUFFER_CALLBACK_FUNCTION) {
+    else if (mBufferType == NGW_BUFFER_CALLBACK_FUNCTION)
+    {
         (NGW_FRAME_CALLBACK_TYPE(mBuffer))(buf, static_cast<unsigned int>(size), this);
+
+        if (mDirtyFlag != nullptr)
+            *mDirtyFlag = NGW_BOOL_TRUE;
     }
-    else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE) {
+    else if (mBufferType == NGW_BUFFER_OPENGL_TEXTURE)
+    {
         ::glBindTexture(GL_TEXTURE_2D, (GLuint)(gsize)mBuffer);
         ::glTexSubImage2D(
             GL_TEXTURE_2D,
@@ -106,6 +119,11 @@ void _Player::onStreamEnd() const
 {
     if (mStreamEndCallback != nullptr)
         mStreamEndCallback(this);
+}
+
+void _Player::setFrameDirtyFlag(gboolean *flag)
+{
+    mDirtyFlag = flag;
 }
 
 struct _Discoverer  final : public ngw::Discoverer { };
@@ -296,6 +314,10 @@ NGWAPI void* ngw_player_get_user_data(Player* player) {
 
 NGWAPI void ngw_player_set_frame_buffer(Player* player, void *buffer, NgwBuffer type) {
     player->setFrameBuffer(buffer, type);
+}
+
+NGWAPI void ngw_player_set_frame_dirty_flag(Player* player, NgwBool *flag) {
+    player->setFrameDirtyFlag(flag);
 }
 
 NGWAPI void ngw_player_set_error_callback(Player* player, NGW_ERROR_CALLBACK_TYPE cb) {

@@ -46,11 +46,13 @@ namespace ngw
     {
         #region Private Members
 
-        IntPtr mNativePlayer                = IntPtr.Zero;
+        IntPtr              mNativePlayer   = IntPtr.Zero;
+        NativeTypes.Boolean mFrameDirty     = NativeTypes.Boolean.False;
 
         GCHandle                            mErrorCallbackHandle;
         GCHandle                            mStateCallbackHandle;
         GCHandle                            mStEndCallbackHandle;
+        GCHandle                            mFrameDirtyFlagHandle;
 
         public Action<NativeTypes.State>    OnStateChanged;
         public Action<string>               OnErrorReceived;
@@ -72,10 +74,10 @@ namespace ngw
             if (mNativePlayer != IntPtr.Zero)
             {
                 var error_delegate = new NativeTypes.ErrorDelegate((msg, player) =>
-                            {
-                                if (OnErrorReceived != null)
-                                    OnErrorReceived(msg);
-                            });
+                {
+                    if (OnErrorReceived != null)
+                        OnErrorReceived(msg);
+                });
 
                 var state_delegate = new NativeTypes.StateDelegate((old, player) =>
                 {
@@ -92,10 +94,12 @@ namespace ngw
                 mErrorCallbackHandle = GCHandle.Alloc(error_delegate, GCHandleType.Pinned);
                 mStateCallbackHandle = GCHandle.Alloc(state_delegate, GCHandleType.Pinned);
                 mStEndCallbackHandle = GCHandle.Alloc(stend_delegate, GCHandleType.Pinned);
+                mFrameDirtyFlagHandle = GCHandle.Alloc(mFrameDirty, GCHandleType.Pinned);
 
                 NativeMethods.ngw_player_set_error_callback(mNativePlayer, error_delegate);
                 NativeMethods.ngw_player_set_state_callback(mNativePlayer, state_delegate);
                 NativeMethods.ngw_player_set_stream_end_callback(mNativePlayer, stend_delegate);
+                NativeMethods.ngw_player_set_frame_dirty_flag(mNativePlayer, ref mFrameDirty);
             }
         }
 
@@ -175,6 +179,13 @@ namespace ngw
             get { return NativeMethods.ngw_player_get_duration(mNativePlayer); }
         }
 
+        // This is left unchanged if passed in buffer is an OpenGL texture
+        public bool frameDirty
+        {
+            get { return mFrameDirty == NativeTypes.Boolean.True; }
+            set { mFrameDirty = (value ? NativeTypes.Boolean.True : NativeTypes.Boolean.False); }
+        }
+
         public void play() { NativeMethods.ngw_player_play(mNativePlayer); }
         public void stop() { NativeMethods.ngw_player_stop(mNativePlayer); }
         public void close() { NativeMethods.ngw_player_close(mNativePlayer); }
@@ -205,6 +216,9 @@ namespace ngw
 
                     if (mStEndCallbackHandle.IsAllocated)
                         mStEndCallbackHandle.Free();
+
+                    if (mFrameDirtyFlagHandle.IsAllocated)
+                        mFrameDirtyFlagHandle.Free();
                 }
             }
         }
@@ -359,6 +373,12 @@ namespace ngw
             CallbackFunction
         }
 
+        public enum Boolean
+        {
+            False,
+            True
+        }
+
         #endregion
     }
 
@@ -462,6 +482,9 @@ namespace ngw
 
         [DllImport("ngw")]
         public static extern void ngw_player_set_frame_buffer(IntPtr player, IntPtr buffer, NativeTypes.Buffer type);
+
+        [DllImport("ngw")]
+        public static extern void ngw_player_set_frame_dirty_flag(IntPtr player, ref NativeTypes.Boolean flag);
 
         [DllImport("ngw")]
         public static extern void ngw_player_set_error_callback(IntPtr player, NativeTypes.ErrorDelegate cb);
