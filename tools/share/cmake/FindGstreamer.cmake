@@ -82,7 +82,7 @@ ENDMACRO()
 # Linux systems
 ELSEIF(UNIX AND NOT CYGWIN)
 
-FIND_PACKAGE(PkgConfig)
+FIND_PACKAGE(PkgConfig REQUIRED)
 
 MACRO(TARGET_ADD_GSTREAMER_MODULES target_name)
     FOREACH(arg ${ARGN})
@@ -108,6 +108,13 @@ MACRO(TARGET_ADD_GSTREAMER_MODULES target_name)
             HINTS ${PC_${_component_prefix}_LIBRARY_DIRS} ${PC_${_component_prefix}_LIBDIR})
         TARGET_LINK_LIBRARIES(${target_name} ${${_component_prefix}_LIBRARIES})
     ENDFOREACH()
+
+    IF(APPLE)
+        FIND_PACKAGE(GLIB 2.0 COMPONENTS gobject REQUIRED)
+        TARGET_LINK_LIBRARIES(${target_name}
+            ${GLIB_LIBRARIES}
+            ${GLIB_GOBJECT_LIBRARIES})
+    ENDIF()
 ENDMACRO()
 
 ENDIF()
