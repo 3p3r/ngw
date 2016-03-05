@@ -151,7 +151,7 @@ bool Player::open(const gchar *path, gint width, gint height, const gchar* fmt)
                 "appsink drop=yes async=no qos=yes sync=yes max-lateness=%lld "
                 "caps=video/x-raw,width=%d,height=%d,format=%s\"",
                 discoverer.getUri(),
-                GST_SECOND,
+                static_cast<long long>(GST_SECOND),
                 width,
                 height,
                 Internal::isNullOrEmpty(fmt) ? "BGRA" : fmt);
