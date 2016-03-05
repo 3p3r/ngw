@@ -21,6 +21,22 @@ It is recommended to use the ABI unstable flavor if you are working with a C++ f
 
 ##Install instructions
 
+###Mac OSX
+
+Installing GStreamer can be done either via [Homebrew](http://brew.sh/) or [official packages](https://gstreamer.freedesktop.org/data/pkg/osx/) found at GStreamer project's website. If you are planning to build this library, using Homebrew is highly recommend:
+
+```BASH
+brew install gstreamer
+brew install gst-plugins-base gst-plugins-bad gst-plugins-ugly gst-plugins-good
+brew install gst-libav
+```
+
+If you are planning to build this library, you also need *cmake* and *pkg-config* installed:
+
+```BASH
+brew install cmake pkgconfig
+```
+
 ###Linux
 
 Installing GStreamer is highly distribution dependent. If you are willing to compile this library under Linux, chances that you know what you are doing is high and you already know how to obtain `gstreamer-1.0` from your package manager. As an example on Ubuntu you may obtain `gstreamer-1.0` via:
