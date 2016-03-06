@@ -17,7 +17,6 @@ public class GstreamerPlayer : MonoBehaviour
     #region Private Members
 
     private ngw.Player          mPlayer = new ngw.Player();
-    private bool                mOpenGl = false;
     private IntPtr              mFrameBuffer;
     private byte[]              mDoubleBuffer;
     private Texture2D           mTexture;
@@ -213,9 +212,7 @@ public class GstreamerPlayer : MonoBehaviour
 
             if (mFrameBuffer != IntPtr.Zero)
             {
-                mPlayer.setFrameBuffer(mFrameBuffer, mOpenGl
-                    ? ngw.NativeTypes.Buffer.OpenGlTexture
-                    : ngw.NativeTypes.Buffer.BytePointer);
+                mPlayer.setFrameBuffer(mFrameBuffer, ngw.NativeTypes.Buffer.BytePointer);
             }
 
             mMediaPath = media;
@@ -250,18 +247,9 @@ public class GstreamerPlayer : MonoBehaviour
         if (width > 0 && height > 0)
         {
             mTexture = new Texture2D(width, height, TextureFormat.BGRA32, false);
-
-            if (mOpenGl)
-            {
-                mBufferHandle = GCHandle.Alloc(mTexture, GCHandleType.Pinned);
-                mFrameBuffer = mTexture.GetNativeTexturePtr();
-            }
-            else
-            {
-                mDoubleBuffer = new byte[width * height * 4];
-                mBufferHandle = GCHandle.Alloc(mDoubleBuffer, GCHandleType.Pinned);
-                mFrameBuffer = mBufferHandle.AddrOfPinnedObject();
-            }
+            mDoubleBuffer = new byte[width * height * 4];
+            mBufferHandle = GCHandle.Alloc(mDoubleBuffer, GCHandleType.Pinned);
+            mFrameBuffer = mBufferHandle.AddrOfPinnedObject();
         }
     }
 
@@ -298,14 +286,6 @@ public class GstreamerPlayer : MonoBehaviour
     /// </remarks>
     void Awake()
     {
-        if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore ||
-            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2 ||
-            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3 ||
-            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGL2)
-        {
-            mOpenGl = true;
-        }
-
         Application.runInBackground = true;
 
         mPlayer.OnStreamEnded += () => { if (OnStreamEnded != null) OnStreamEnded(); };
