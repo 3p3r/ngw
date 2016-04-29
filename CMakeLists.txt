@@ -12,6 +12,10 @@ SET( NGW_BINDINGS
  "${NGW_ROOT}/bindings"
  CACHE PATH "bindings directory" )
 
+SET( NGW_SAMPLES
+ "${NGW_ROOT}/samples"
+ CACHE PATH "samples directory" )
+
 SET( CMAKE_MODULE_PATH
  ${CMAKE_MODULE_PATH}
  "${NGW_ROOT}/tools/share/cmake" )
@@ -51,6 +55,17 @@ TARGET_ADD_GSTREAMER_MODULES( ngw
 	gstreamer-pbutils-1.0 )
 TARGET_LINK_LIBRARIES( ngw ngw.static )
 TARGET_COMPILE_DEFINITIONS( ngw PUBLIC -DNGW_BUILD_DLL )
+
+FIND_PACKAGE( Cinder QUIET )
+IF( Cinder_FOUND )
+ADD_EXECUTABLE( ngw.cinder ${NGW_SAMPLES}/cinder/ngw.cinder.cpp )
+TARGET_ADD_GSTREAMER_MODULES( ngw.cinder
+	gstreamer-1.0
+	gstreamer-app-1.0
+	gstreamer-pbutils-1.0 )
+CONFIGURE_CINDER_TARGET( ngw.cinder )
+TARGET_LINK_LIBRARIES( ngw.cinder ngw.static )
+ENDIF()
 
 FIND_PACKAGE(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
